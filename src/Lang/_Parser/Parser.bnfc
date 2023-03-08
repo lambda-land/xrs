@@ -1,0 +1,22 @@
+
+
+
+FunDef. Stm ::= Ident "=" Expr ;
+
+EInt.   Exp2 ::= Integer ;
+ETimes. Exp1 ::= Exp1 "*" Exp2 ;
+EPlus.  Exp  ::= Exp  "+" Exp1 ;
+
+Var.      Exp2 ::= Ident ;  --- QualIdent in abs; Ident in parser
+Litc.     Exp2 ::= Lit ;
+App.      Exp1 ::= Exp1 Exp2 ;
+Appt.     Exp1 ::= Exp1 "@" Ty2 ;
+Lams.     Exp  ::= "\\" [Bind] "->" Exp ; --- foldr Lam
+Let.      Exp  ::= "let" Vdefg "%in" Exp ;
+Case.     Exp  ::= "case" Exp2 "%of" Vbind "{" [Alt] "}" ;
+Note.     Exp  ::= "%note" String Exp ;   --- STRING
+External. Exp  ::= "%external" String Ty ;
+
+_.      Exp2 ::= "(" Exp ")" ;
+_.      Exp1 ::= Exp2 ;
+_.      Exp  ::= Exp1 ;

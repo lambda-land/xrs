@@ -22,7 +22,7 @@ data Expr
   | EList [Expr]
   deriving Eq
 
-data BinOp = Add | Mul | Sub | Div | Eq | LEq | Lt | Or | And | GEq | NEq | Append  deriving Eq
+data BinOp = Add | Mul | Sub | Div | Eq | LEq | Lt | Or | And | Gt | GEq | NEq | Append  deriving Eq
 
 
 
@@ -144,6 +144,7 @@ instance Show BinOp where
   show Eq  = "=="
   show LEq = "<="
   show Lt  = "<"
+  show Gt  = ">"
   show Or  = "||"
   show And = "&&"
   show GEq = ">="

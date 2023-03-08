@@ -63,6 +63,13 @@ library
         Lang.Lang
         Lang.Denotation
         Lang.Operation
+        Lang.Parser
+        Lang.LexParser
+        Lang.ParParser
+        Lang.AbsParser
+        Lang.LayoutParser
+        Lang.ASTConverter
+
         -- MyLib,
         -- Lang,
         -- OpSem,
@@ -99,6 +106,8 @@ library
         src/Logic,
         src/Display,
         src/Lang,
+        src/Lang/Parser,
+        src/Lang/Parser/Lang
         -- src/Lang,
         -- src/Parser
 
