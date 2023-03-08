@@ -16,3 +16,10 @@ fac = fun n -> if n < 2
                 then 1 
                 else n * fac (n - 1)
 
+foundation = fun x -> [x]
+
+peano = fun n -> if n == 0
+                    then []
+                    else foundation (peano (n - 1))
+
+

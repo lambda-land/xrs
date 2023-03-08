@@ -10,7 +10,10 @@ import Lang.Operation
 import Data.Maybe (fromJust)
 import Tools (coio)
 
-parseFromFile :: FilePath -> IO (Either String [(String,Expr)])
+type ParseError = String
+type ParseResult = Either ParseError GlobalEnv -- Either String [(String,Expr)]
+
+parseFromFile :: FilePath -> IO ParseResult
 parseFromFile f = do
   s <- readFile f
   return (parse s)
@@ -20,7 +23,7 @@ getRight :: Either String b -> b
 getRight (Left x)  = error x
 getRight (Right x) = x
 
-getBinding :: String -> Either String [(String,Expr)] -> Expr
+getBinding :: String -> ParseResult -> Expr
 getBinding s = fromJust . lookup s . getRight
 
 -- getExampleFromFile :: FilePath -> String -> IO Expr
@@ -40,6 +43,8 @@ getBinding s = fromJust . lookup s . getRight
 -- traceFromFileTill n en = getExampleFromFile "app/Ex1.xr" en >>= (\e -> print $  hidePast n $ trace e)
 
 -- reallyStupidFixPrashantPleaseHelp :: String -> Either String [(String,Expr)]
+
+reallyStupidFixPrashantPleaseHelp :: String -> ParseResult
 reallyStupidFixPrashantPleaseHelp s = consolidate results
   where ss = filter (not . null) $ coagulate [[]] (lines s)
         coagulate xss [] = xss
@@ -50,7 +55,7 @@ reallyStupidFixPrashantPleaseHelp s = consolidate results
         consolidate ((Right x):xs) = consolidate xs >>= Right . (x++)
         consolidate [] = Right []
 
-parse :: String -> Either String [(String,Expr)]
+parse :: String -> ParseResult
 parse s = case pSCPL (resolveLayout False $ myLexer s) of 
             Left err -> Left err
             Right x  -> Right (transSCPL x)

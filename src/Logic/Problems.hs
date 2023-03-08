@@ -1,6 +1,8 @@
 module Logic.Problems where
 
 import Logic.Proof
+import Display.Latex
+
 import Data.Maybe (fromJust)
 
 
@@ -12,11 +14,6 @@ instance Functor Problem where
   fmap _ Missing = Missing
   fmap _ Axiom = Axiom
 
-instance Show j => Show (Problem j) where
-  show (Fine j) = show j
-  show (Issue j) = "{>> " ++ show j ++ " <<}"-- "\x1b[1;31m {>> \x1b[0m " ++ show j ++ " \x1b[1;31m <<} \x1b[0m"
-  show Missing = "(no proof)" -- "\x1b[0;31m(no proof)\x1b[0m"
-  show Axiom = ""
 
 
 problems :: Explain j => Proof j -> Proof (Problem j)
@@ -28,3 +25,17 @@ nicerProblems = go . problems
         go (Node (Fine j) []) = Node (Fine j) [Node Axiom []]
         go (Node j ps)        = Node j (map go ps)
 
+
+
+instance Show j => Show (Problem j) where
+  show (Fine j) = show j
+  show (Issue j) = "{>> " ++ show j ++ " <<}"-- "\x1b[1;31m {>> \x1b[0m " ++ show j ++ " \x1b[1;31m <<} \x1b[0m"
+  show Missing = "(no proof)" -- "\x1b[0;31m(no proof)\x1b[0m"
+  show Axiom = ""
+
+
+instance Latex j => Latex (Problem j) where
+  latex (Fine j) = latex j
+  latex (Issue j) = "\\langle " ++ latex j ++ "\\rangle"
+  latex Missing = "\\langle \\textbf{(no proof)} \\rangle"
+  latex Axiom = ""

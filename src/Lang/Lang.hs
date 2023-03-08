@@ -1,5 +1,7 @@
 module Lang.Lang where
 
+import Display.Latex
+
 import Data.List ((\\), intercalate)
 
 
@@ -160,3 +162,33 @@ instance Show Val where
   show (VClosure x e _) = "(closure " ++ x ++ " -> " ++ show e ++ ")"
 
 
+instance Latex Expr where
+  latex (EInt n)  = show n
+  latex (EBool b) = show b
+  latex (EStr s)  = show s
+  latex (EChar c) = show c
+  latex (EVar v)  = v
+  latex (ELet v e1 e2) = "let " ++ v ++ " = " ++ latex e1 ++ " in " ++ latex e2
+  latex (EOp e1 o e2) = "(" ++ latex e1 ++ " " ++ latex o ++ " " ++ latex e2 ++ ")"
+  latex (EApp e1 e2) 
+    = case e2 of
+        (EInt _)  -> latex e1 ++ " " ++ latex e2
+        (EBool _) -> latex e1 ++ " " ++ latex e2
+        (EStr _)  -> latex e1 ++ " " ++ latex e2
+        (EChar _) -> latex e1 ++ " " ++ latex e2
+        (EVar _)  -> latex e1 ++ " " ++ latex e2
+        _         -> latex e1 ++ " (" ++ latex e2 ++ ")"
+  latex (ELam v e) = "(fun " ++ v ++ " -> " ++ latex e ++ ")"
+  latex (EList es) = "[" ++ intercalate ", " (map latex es) ++ "]"
+  latex (EIf e1 e2 e3) = "if " ++ latex e1 ++ " then " ++ latex e2 ++ " else " ++ latex e3
+
+instance Latex BinOp where
+  latex = show
+
+instance Latex Val where
+  latex (VInt n)  = show n
+  latex (VBool b) = show b
+  latex (VStr s)  = show s
+  latex (VChar c) = show c
+  latex (VList vs) = "[" ++ intercalate ", " (map latex vs) ++ "]"
+  latex (VClosure x e _) = "(closure " ++ x ++ " -> " ++ latex e ++ ")"

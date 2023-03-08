@@ -5,6 +5,8 @@ import Lang.Denotation
 
 import Logic.Proof
 
+import Display.Latex
+
 import Data.List (intercalate)
 import Data.Maybe (fromJust)
 
@@ -86,14 +88,15 @@ instance Explain EvalJ where
 --}
   premises (EvalJ d rho (EIf e1 e2 e3) v)
     | VBool b <- eval d rho e1, b == True  = [[EvalJ d rho e1 (VBool True), EvalJ d rho e2 v]]
-    | VBool b <- eval d rho e1, b == False = [[EvalJ d rho e1 (VBool True), EvalJ d rho e3 v]]
+    | VBool b <- eval d rho e1, b == False = [[EvalJ d rho e1 (VBool False), EvalJ d rho e3 v]]
 
   premises _ = []
 
 
 
 trace :: GlobalEnv -> Expr -> Proof EvalJ
-trace d e = fromJust $ prove (EvalJ d [] e v)
+-- trace d e = fromJust $ prove (EvalJ d [] e v)
+trace d e = suppose (EvalJ d [] e v)
   where v = eval d [] e
 
 
@@ -106,3 +109,9 @@ instance Show EvalJ where
   show (EvalJ d rho e v) = "{}" ++ "," ++ "[]" ++ " |- " ++ show e ++ " => " ++ show v
     where showGlobal d = "{" ++ (intercalate ", " $ map fst d) ++ "}"
           showLocal rho = "[" ++ (intercalate ", " $ map (\(v, v') -> v ++ " -> " ++ show v') $ filter (\(v,_) -> v `elem` (freeVars e)) rho) ++ "]"
+
+instance Latex EvalJ where
+  latex (EvalJ d rho e v) = "\\{\\ \\}" ++ "," ++ localEnv ++ " \\vdash " ++ "\\code{" ++ latex e ++ "} "++ " \\Rightarrow " ++ "\\code{" ++ latex v ++ "}"
+    where showGlobal d = "{" ++ (intercalate ", " $ map fst d) ++ "}"
+          showLocal rho = "[" ++ (intercalate ", " $ map (\(v, v') -> "\\code{" ++ v ++ "} "++ " \\mapsto " ++ "\\code{" ++ latex v' ++ "}") $ filter (\(v,_) -> v `elem` (freeVars e)) rho) ++ "]"
+          localEnv = showLocal rho -- "[\\ ]"

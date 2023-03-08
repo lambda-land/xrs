@@ -1,0 +1,29 @@
+\documentclass{article}
+\usepackage{proof}
+\usepackage{amssymb,amsmath}
+\usepackage{relsize}
+\usepackage[
+    % a0paper,
+    % landscape,
+    papersize={100in,20in},
+    margin={2in,2in}
+    %total={1800in, 10in},
+    ]{geometry}
+
+
+\def\code#1{\texttt{#1}}
+
+\title{Big Proof Trees}
+\author{Iain Moncrief}
+\date{February 2023}
+
+\begin{document}
+\relscale{0.1}
+
+\maketitle
+
+\section{Introduction}
+
+
+$$\infer[]{\{\ \},[] \vdash \code{fib 2}  \Rightarrow \code{1}}{\infer[]{\{\ \},[] \vdash \code{fib}  \Rightarrow \code{(closure n -> if (n < 2) then n else (fib ((n - 1)) + fib ((n - 2))))}}{\infer[]{\{\ \},[] \vdash \code{(fun n -> if (n < 2) then n else (fib ((n - 1)) + fib ((n - 2))))}  \Rightarrow \code{(closure n -> if (n < 2) then n else (fib ((n - 1)) + fib ((n - 2))))}}{}} && \infer[]{\{\ \},[] \vdash \code{2}  \Rightarrow \code{2}}{} && \infer[]{\{\ \},[\code{n}  \mapsto \code{2}] \vdash \code{if (n < 2) then n else (fib ((n - 1)) + fib ((n - 2)))}  \Rightarrow \code{1}}{\infer[]{\{\ \},[\code{n}  \mapsto \code{2}] \vdash \code{(n < 2)}  \Rightarrow \code{False}}{\infer[]{\{\ \},[\code{n}  \mapsto \code{2}] \vdash \code{n}  \Rightarrow \code{2}}{} && \infer[]{\{\ \},[] \vdash \code{2}  \Rightarrow \code{2}}{}} && \infer[]{\{\ \},[\code{n}  \mapsto \code{2}] \vdash \code{(fib ((n - 1)) + fib ((n - 2)))}  \Rightarrow \code{1}}{\infer[]{\{\ \},[\code{n}  \mapsto \code{2}] \vdash \code{fib ((n - 1))}  \Rightarrow \code{1}}{\infer[]{\{\ \},[] \vdash \code{fib}  \Rightarrow \code{(closure n -> if (n < 2) then n else (fib ((n - 1)) + fib ((n - 2))))}}{\infer[]{\{\ \},[] \vdash \code{(fun n -> if (n < 2) then n else (fib ((n - 1)) + fib ((n - 2))))}  \Rightarrow \code{(closure n -> if (n < 2) then n else (fib ((n - 1)) + fib ((n - 2))))}}{}} && \infer[]{\{\ \},[\code{n}  \mapsto \code{2}] \vdash \code{(n - 1)}  \Rightarrow \code{1}}{\infer[]{\{\ \},[\code{n}  \mapsto \code{2}] \vdash \code{n}  \Rightarrow \code{2}}{} && \infer[]{\{\ \},[] \vdash \code{1}  \Rightarrow \code{1}}{}} && \infer[]{\{\ \},[\code{n}  \mapsto \code{1}] \vdash \code{if (n < 2) then n else (fib ((n - 1)) + fib ((n - 2)))}  \Rightarrow \code{1}}{\infer[]{\{\ \},[\code{n}  \mapsto \code{1}] \vdash \code{(n < 2)}  \Rightarrow \code{True}}{\infer[]{\{\ \},[\code{n}  \mapsto \code{1}] \vdash \code{n}  \Rightarrow \code{1}}{} && \infer[]{\{\ \},[] \vdash \code{2}  \Rightarrow \code{2}}{}} && \infer[]{\{\ \},[\code{n}  \mapsto \code{1}] \vdash \code{n}  \Rightarrow \code{1}}{}}} && \infer[]{\{\ \},[\code{n}  \mapsto \code{2}] \vdash \code{fib ((n - 2))}  \Rightarrow \code{0}}{\infer[]{\{\ \},[] \vdash \code{fib}  \Rightarrow \code{(closure n -> if (n < 2) then n else (fib ((n - 1)) + fib ((n - 2))))}}{\infer[]{\{\ \},[] \vdash \code{(fun n -> if (n < 2) then n else (fib ((n - 1)) + fib ((n - 2))))}  \Rightarrow \code{(closure n -> if (n < 2) then n else (fib ((n - 1)) + fib ((n - 2))))}}{}} && \infer[]{\{\ \},[\code{n}  \mapsto \code{2}] \vdash \code{(n - 2)}  \Rightarrow \code{0}}{\infer[]{\{\ \},[\code{n}  \mapsto \code{2}] \vdash \code{n}  \Rightarrow \code{2}}{} && \infer[]{\{\ \},[] \vdash \code{2}  \Rightarrow \code{2}}{}} && \infer[]{\{\ \},[\code{n}  \mapsto \code{0}] \vdash \code{if (n < 2) then n else (fib ((n - 1)) + fib ((n - 2)))}  \Rightarrow \code{0}}{\infer[]{\{\ \},[\code{n}  \mapsto \code{0}] \vdash \code{(n < 2)}  \Rightarrow \code{True}}{\infer[]{\{\ \},[\code{n}  \mapsto \code{0}] \vdash \code{n}  \Rightarrow \code{0}}{} && \infer[]{\{\ \},[] \vdash \code{2}  \Rightarrow \code{2}}{}} && \infer[]{\{\ \},[\code{n}  \mapsto \code{0}] \vdash \code{n}  \Rightarrow \code{0}}{}}}}}}$$
+\end{document}
