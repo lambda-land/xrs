@@ -56,24 +56,30 @@ library
 
     -- Modules exported by the library.
     exposed-modules: 
-        MyLib,
-        Lang,
-        OpSem,
-        Proof,
-        ProofDisplay,
-        ExampleSystems,
-        Parser,
-        Latex,
-        Tagger
+        Logic.Proof
+        Logic.Problems
+        Display.Latex
+        Tools
+        Lang.Lang
+        -- MyLib,
+        -- Lang,
+        -- OpSem,
+        -- Proof,
+        -- ProofDisplay,
+        -- ExampleSystems,
+        -- Parser,
+        -- Latex,
+        -- Tagger
 
     -- Modules included in this library but not exported.
     other-modules:
-        ErrorHandler,
-        ASTConverter,
-        AbsParser,
-        LayoutParser,
-        LexParser,
-        ParParser
+        -- Logic.ProofDisplay,
+        -- ErrorHandler,
+        -- ASTConverter,
+        -- AbsParser,
+        -- LayoutParser,
+        -- LexParser,
+        -- ParParser
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
@@ -88,7 +94,11 @@ library
     -- Directories containing source files.
     hs-source-dirs:
         src,
-        src/Parser
+        src/Logic,
+        src/Display,
+        src/Lang,
+        -- src/Lang,
+        -- src/Parser
 
     -- Base language which the package is written in.
     default-language: GHC2021
