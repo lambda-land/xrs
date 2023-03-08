@@ -2,6 +2,7 @@ module Lang.Denotation where
 
 import Lang.Lang
 
+import Data.Maybe (fromJust)
 
 
 
@@ -16,6 +17,7 @@ eval d rho e = case e of
   ELet v e1 e2 -> eval d ((v, eval d rho e1):rho) e2
   EOp e1 o e2  -> runBinOp o (eval d rho e1) (eval d rho e2)
   ELam v e     -> VClosure v e rho -- TODO: trim the closure environment?
+  EApp _ _ | isBuildInApp e -> runBuildInApp d rho e
   EApp e1 e2   -> case (eval d rho e1, eval d rho e2) of
                     (VClosure v e env, x) -> eval d ((v, x):env) e
                     (_, _) -> error "cannot apply a non-closure value"
@@ -48,6 +50,46 @@ runBinOp op = case op of
     append (VList a) (VList b) = VList (a ++ b)
     append _ _ = error "only lists can be appended"
 
+
+type BuiltInFun = [Val] -> Val
+type Arity = Int
+
+builtInDefs :: [(Var,(Arity,BuiltInFun))]
+builtInDefs
+  = [ ("print", (1, printFun))
+    , ("head", (1, headFun))
+    , ("tail", (1, tailFun))
+    ]
+  where printFun = undefined
+        headFun [VList (x:_)] = x
+        headFun [VList []]    = error "(builtin)head: empty list"
+        headFun _             = error "(builtin)head: expected a list"
+        tailFun [VList (_:xs)] = VList xs
+        tailFun [VList []]     = VList []
+        tailFun _              = error "(builtin)tail: expected a list"
+
+isBuiltIn :: Var -> Bool
+isBuiltIn v = v `elem` map fst builtInDefs
+
+arity :: Var -> Arity
+arity v = case lookup v builtInDefs of
+            Just (a,_) -> a
+            Nothing    -> error "arity: not a built-in function"
+
+runBuiltIn :: Var -> [Val] -> Val
+runBuiltIn f args | arity f == length args = f' args
+  where f' = snd $ fromJust $ lookup f builtInDefs
+runBuiltIn f _ = error $ "runBuiltIn: wrong number of arguments for " ++ f
+
+isBuildInApp :: Expr -> Bool
+isBuildInApp e = case flattenApp e of
+                   (EVar f, args) -> isBuiltIn f && length args == arity f
+                   _              -> False
+
+runBuildInApp :: GlobalEnv -> LocalEnv -> Expr -> Val
+runBuildInApp d rho e = case flattenApp e of
+                          (EVar f, args) -> runBuiltIn f (map (eval d rho) args)
+                          _              -> error "runBuildInApp: not a built-in application"
 
 {--
 -- fact = fun x -> if x == 0 then 1 else x * fact (x - 1)
