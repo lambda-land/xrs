@@ -95,8 +95,8 @@ instance Explain EvalJ where
 
 
 trace :: GlobalEnv -> Expr -> Proof EvalJ
--- trace d e = fromJust $ prove (EvalJ d [] e v)
-trace d e = suppose (EvalJ d [] e v)
+trace d e = fromJust $ prove (EvalJ d [] e v)
+-- trace d e = suppose (EvalJ d [] e v)
   where v = eval d [] e
 
 
