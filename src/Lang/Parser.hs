@@ -8,7 +8,7 @@ import Lang.Lang
 import Lang.Operation
 
 import Data.Maybe (fromJust)
-
+import Tools (coio)
 
 parseFromFile :: FilePath -> IO (Either String [(String,Expr)])
 parseFromFile f = do
@@ -39,11 +39,33 @@ getBinding s = fromJust . lookup s . getRight
 
 -- traceFromFileTill n en = getExampleFromFile "app/Ex1.xr" en >>= (\e -> print $  hidePast n $ trace e)
 
+-- reallyStupidFixPrashantPleaseHelp :: String -> Either String [(String,Expr)]
+reallyStupidFixPrashantPleaseHelp s = consolidate results
+  where ss = filter (not . null) $ coagulate [[]] (lines s)
+        coagulate xss [] = xss
+        coagulate xss ([]:xs) = coagulate ([]:xss) xs
+        coagulate (xs:xss) (x:xs') = coagulate ((xs ++ "\n" ++ x):xss) xs'
+        results = map parse ss
+        consolidate ((Left x):_) = Left x
+        consolidate ((Right x):xs) = consolidate xs >>= Right . (x++)
+        consolidate [] = Right []
 
 parse :: String -> Either String [(String,Expr)]
 parse s = case pSCPL (resolveLayout False $ myLexer s) of 
             Left err -> Left err
             Right x  -> Right (transSCPL x)
 
+parseProgram :: String -> GlobalEnv
+parseProgram s = case reallyStupidFixPrashantPleaseHelp s of
+                   Left err -> error err
+                   Right x  -> x
+
 parseString :: String -> Expr
 parseString s = getBinding "expr" (parse $ "expr = " ++ s)
+
+
+loadFile :: String -> GlobalEnv
+loadFile = parseProgram . coio .readFile
+
+
+

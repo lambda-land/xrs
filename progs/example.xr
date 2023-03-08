@@ -1,0 +1,9 @@
+iain = let id = \x -> x 
+    in id "Iain"
+
+iain2 = let id = \x -> x 
+    in id "Iain"
+
+
+
+

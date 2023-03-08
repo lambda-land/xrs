@@ -69,6 +69,7 @@ library
         Lang.AbsParser
         Lang.LayoutParser
         Lang.ASTConverter
+        Lang.Evaluation
 
         -- MyLib,
         -- Lang,
@@ -114,7 +115,7 @@ library
     -- Base language which the package is written in.
     default-language: GHC2021
 
-executable XRuleSystems
+executable Main
     -- Import common warning flags.
     import:           warnings
 
