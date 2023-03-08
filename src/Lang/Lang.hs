@@ -102,6 +102,7 @@ substVar v e1 e2 = treeMap' subst e2
 {--   Instances   --}
 
 instance Eq Val where
+  (VClosure x e env) == (VClosure x' e' env') = x == x && e == e && env == env'
   a == b = (compare a b == EQ)
 
 instance Ord Val where
@@ -155,6 +156,6 @@ instance Show Val where
   show (VStr s)  = show s
   show (VChar c) = show c
   show (VList vs) = "[" ++ intercalate ", " (map show vs) ++ "]"
-  show (VClosure x e _) = ""
+  show (VClosure x e _) = "(closure " ++ x ++ " -> " ++ show e ++ ")"
 
 

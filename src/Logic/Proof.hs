@@ -19,6 +19,18 @@ children :: Proof j -> [Proof j]
 children (Node _ ps) = ps
 
 
+
+hidePast :: Int -> Proof j -> Proof j
+hidePast 0 (Node j _) = Node j []
+hidePast n (Node j ps) = Node j (map (hidePast (n-1)) ps)
+
+hide :: Eq j => j -> Proof j -> Maybe (Proof j)
+hide j (Node j' ps)
+    | j == j' = Nothing
+    | otherwise = Just $ Node j' (map fromJust $ filter (not . null) $ map (hide j) ps)
+
+
+
 countNodes :: Proof j -> Int
 countNodes (Node _ []) = 1
 countNodes (Node _ ps) = 1 + sum (map countNodes ps)

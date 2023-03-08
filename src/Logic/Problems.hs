@@ -28,13 +28,3 @@ nicerProblems = go . problems
         go (Node (Fine j) []) = Node (Fine j) [Node Axiom []]
         go (Node j ps)        = Node j (map go ps)
 
-
-hidePast :: Int -> Proof j -> Proof j
-hidePast 0 (Node j _) = Node j []
-hidePast n (Node j ps) = Node j (map (hidePast (n-1)) ps)
-
-hide :: Eq j => j -> Proof j -> Maybe (Proof j)
-hide j (Node j' ps)
-    | j == j' = Nothing
-    | otherwise = Just $ Node j' (map fromJust $ filter (not . null) $ map (hide j) ps)
-

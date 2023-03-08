@@ -61,6 +61,8 @@ library
         Display.Latex
         Tools
         Lang.Lang
+        Lang.Denotation
+        Lang.Operation
         -- MyLib,
         -- Lang,
         -- OpSem,
