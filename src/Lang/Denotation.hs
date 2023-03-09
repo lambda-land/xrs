@@ -14,6 +14,7 @@ eval d rho e = case e of
   EChar c -> VChar c
   EVar v | Just val <- lookup v rho -> val
          | Just e'  <- lookup v d -> eval d [] e'
+         | otherwise -> error $ "unbound variable: " ++ v
   ELet v e1 e2 -> eval d ((v, eval d rho e1):rho) e2
   EOp e1 o e2  -> runBinOp o (eval d rho e1) (eval d rho e2)
   ELam v e     -> VClosure v e rho -- TODO: trim the closure environment?
@@ -44,11 +45,11 @@ runBinOp op = case op of
   Append -> append
   where
     arith f (VInt a) (VInt b) = VInt (f a b)
-    arith _ _ _ = error "binary operator expected integer arguments"
+    arith _ a b = error $ "binary operator expected integer arguments. " ++ show a ++ " " ++ show op ++ " " ++ show b
     comp f v1 v2 = VBool (f v1 v2)
     bool f (VBool a) (VBool b) = VBool (f a b)
     append (VList a) (VList b) = VList (a ++ b)
-    append _ _ = error "only lists can be appended"
+    append a b = error $ "only lists can be appended. " ++ show a ++ " ++ " ++ show b 
 
 
 type BuiltInFun = [Val] -> Val

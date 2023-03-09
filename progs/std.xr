@@ -2,11 +2,39 @@
 
 
 
+
 flip = fun f x y -> f y x
 
 id = fun x -> x
 
 const = fun x y -> x
+
+length = fun xs -> if xs == [] 
+                    then 0 
+                    else 1 + length (tail xs)
+
+cons = fun x xs -> [x] ++ xs
+
+snoc = fun xs x -> xs ++ [x]
+
+
+reverse = fun xs -> if xs == [] 
+                    then [] 
+                    else reverse (tail xs) ++ [head xs]
+
+map = fun f xs -> if xs == [] 
+                    then [] 
+                    else [f (head xs)] ++ map f (tail xs)
+
+take = fun n xs -> if n == 0 
+                    then [] 
+                    else [head xs] ++ take (n - 1) (tail xs)
+
+nats = fun n -> if n == 0 
+                then [] 
+                else nats (n - 1) ++ [n]
+
+
 
 fib = fun n -> if n < 2 
                 then n 

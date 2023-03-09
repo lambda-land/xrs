@@ -8,6 +8,7 @@ safeCatch :: a -> Maybe a
 safeCatch x = unsafePerformIO $ Exc.catch (x `seq` return (Just x)) handler
   where handler exc = return Nothing  `const`  (exc :: Exc.ErrorCall)
 
+{-# INLINE coio #-}
 coio :: IO a -> a
 coio x = unsafePerformIO x
 

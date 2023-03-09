@@ -226,7 +226,7 @@ instance Print Lang.AbsParser.Exp where
     Lang.AbsParser.EVar pident -> prPrec i 15 (concatD [prt 0 pident])
     Lang.AbsParser.EString str -> prPrec i 15 (concatD [printString str])
     Lang.AbsParser.EList exps -> prPrec i 15 (concatD [doc (showString "["), prt 0 exps, doc (showString "]")])
-    Lang.AbsParser.EApp exp1 exp2 -> prPrec i 14 (concatD [prt 14 exp1, prt 15 exp2])
+    Lang.AbsParser.EApp exp1 exp2 -> prPrec i 15 (concatD [prt 15 exp1, prt 0 exp2])
     Lang.AbsParser.ENeg exp -> prPrec i 13 (concatD [doc (showString "-"), prt 14 exp])
     Lang.AbsParser.CONSTERM exp1 exp2 -> prPrec i 13 (concatD [prt 13 exp1, doc (showString ":"), prt 14 exp2])
     Lang.AbsParser.EAPPEND exp1 exp2 -> prPrec i 12 (concatD [prt 12 exp1, doc (showString "++"), prt 13 exp2])

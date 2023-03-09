@@ -86,7 +86,6 @@ transExp x = case x of
   Lang.AbsParser.EVar pident -> failure x
   Lang.AbsParser.EString string -> failure x
   Lang.AbsParser.EList exps -> failure x
-  Lang.AbsParser.EApp exp1 exp2 -> failure x
   Lang.AbsParser.ENeg exp -> failure x
   Lang.AbsParser.CONSTERM exp1 exp2 -> failure x
   Lang.AbsParser.EAPPEND exp1 exp2 -> failure x
@@ -103,6 +102,7 @@ transExp x = case x of
   Lang.AbsParser.EAnd exp1 exp2 -> failure x
   Lang.AbsParser.EOr exp1 exp2 -> failure x
   Lang.AbsParser.ELambda pidents stmt -> failure x
+  Lang.AbsParser.EApp exp1 exp2 -> failure x
 
 transTypeAnnotation :: Lang.AbsParser.TypeAnnotation -> Result
 transTypeAnnotation x = case x of

@@ -69,8 +69,9 @@ parseString :: String -> Expr
 parseString s = getBinding "expr" (parse $ "expr = " ++ s)
 
 
+{-# INLINE loadFile #-}
 loadFile :: String -> GlobalEnv
-loadFile = parseProgram . coio .readFile
+loadFile = parseProgram . coio . readFile
 
 
 

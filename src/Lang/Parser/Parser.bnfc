@@ -101,8 +101,9 @@ EFalse. Exp15 ::= "False" ;
 EVar.Exp15      ::= PIdent;
 EString.Exp15   ::= String ;
 EList. Exp15 ::=  "[" [Exp] "]" ; -- [1,2+3,3] -- foldl (\x y -> App (App (Var "cons") (transExp x)) y) (Var "nil") list 
+EApp.     Exp14 ::= Exp14 Exp15;
 
-ECall. Exp15 ::= PIdent "(" [Exp] ")" ;
+-- ECall. Exp15 ::= PIdent "(" [Exp] ")" ;
 
 ENeg. Exp13 ::= "-" Exp14 ;
 CONSTERM .Exp13    ::= Exp13 ":" Exp14 ;
@@ -129,7 +130,7 @@ EOr. Exp3 ::= Exp3 "||" Exp4 ;
 
 ELambda . Exp1 ::= "\\" [PIdent] "->" Stmt1;
 ELambda . Exp1 ::= "fun" [PIdent] "->" Stmt1;
-EApp.     Exp1 ::= Exp1 Exp2;
+-- EApp.     Exp1 ::= Exp1 Exp1;
 
 separator nonempty PIdent " " ;
 

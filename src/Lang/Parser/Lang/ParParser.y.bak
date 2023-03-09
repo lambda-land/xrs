@@ -24,7 +24,6 @@ module Lang.ParParser
   , pCasePattern
   , pListCaseTerm
   , pExp15
-  , pExp14
   , pExp13
   , pExp12
   , pExp11
@@ -41,6 +40,7 @@ module Lang.ParParser
   , pExp6
   , pExp7
   , pExp10
+  , pExp14
   , pListExp
   , pConstantType
   ) where
@@ -68,7 +68,6 @@ import Lang.LexParser
 %name pCasePattern CasePattern
 %name pListCaseTerm ListCaseTerm
 %name pExp15 Exp15
-%name pExp14 Exp14
 %name pExp13 Exp13
 %name pExp12 Exp12
 %name pExp11 Exp11
@@ -85,6 +84,7 @@ import Lang.LexParser
 %name pExp6 Exp6
 %name pExp7 Exp7
 %name pExp10 Exp10
+%name pExp14 Exp14
 %name pListExp ListExp
 %name pConstantType ConstantType
 -- no lexer declaration
@@ -236,10 +236,8 @@ Exp15
   | PIdent { Lang.AbsParser.EVar $1 }
   | String { Lang.AbsParser.EString $1 }
   | '[' ListExp ']' { Lang.AbsParser.EList $2 }
+  | Exp15 Exp { Lang.AbsParser.EApp $1 $2 }
   | '(' Exp ')' { $2 }
-
-Exp14 :: { Lang.AbsParser.Exp }
-Exp14 : Exp14 Exp15 { Lang.AbsParser.EApp $1 $2 } | Exp15 { $1 }
 
 Exp13 :: { Lang.AbsParser.Exp }
 Exp13
@@ -311,6 +309,9 @@ Exp7 : Exp8 { $1 }
 
 Exp10 :: { Lang.AbsParser.Exp }
 Exp10 : Exp11 { $1 }
+
+Exp14 :: { Lang.AbsParser.Exp }
+Exp14 : Exp15 { $1 }
 
 ListExp :: { [Lang.AbsParser.Exp] }
 ListExp

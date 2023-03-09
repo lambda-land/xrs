@@ -56,7 +56,6 @@ data Exp
     | EVar PIdent
     | EString String
     | EList [Exp]
-    | EApp Exp Exp
     | ENeg Exp
     | CONSTERM Exp Exp
     | EAPPEND Exp Exp
@@ -73,6 +72,7 @@ data Exp
     | EAnd Exp Exp
     | EOr Exp Exp
     | ELambda [PIdent] Stmt
+    | EApp Exp Exp
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 data TypeAnnotation = TYPEANNOTATION Type | TYPEANNOTATION_EMPTY

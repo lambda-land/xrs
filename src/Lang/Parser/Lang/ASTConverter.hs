@@ -164,7 +164,7 @@ transExp x = case x of
   AbsParser.EVar pident -> EVar (transPIdent pident)
   AbsParser.EString string -> EStr string
   AbsParser.EList exps -> EList (map transExp exps)-- foldr (\x y -> App (App (Var "cons") x) y) (Var "nil") (map transExp exps)  
-  AbsParser.ECall pident exps -> foldl EApp (EVar (transPIdent pident)) (map transExp exps) -- App (Var (transPIdent pident)) (map transExp exps)  -- App Expr [Expr] 
+  -- AbsParser.ECall pident exps -> foldl EApp (EVar (transPIdent pident)) (map transExp exps) -- App (Var (transPIdent pident)) (map transExp exps)  -- App Expr [Expr] 
   AbsParser.ENeg exp -> EOp (EInt 0) Sub (transExp exp) 
   AbsParser.CONSTERM exp1 exp2 -> EApp (EApp (EVar "cons") (transExp exp1)) (transExp exp2)
   AbsParser.EAPPEND exp1 exp2 -> EOp (transExp exp1) Append (transExp exp2)
