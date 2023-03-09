@@ -60,6 +60,13 @@ D, rho |- ei => vi    f(e1,...,en)    arity(f) = n
 D, rho |- f e1 ... en => v     (where f ranges over builtin vars)
 
 
+--------------------ListNil
+D, rho |- [] => []
+
+
+D, rho |- ei => vi
+------------------------------------------List
+D, rho |- [e1, ..., en] |- [v1, ..., vn]
 
 
 ------------------------------------------------------Explanation Rules---------------------------------------

@@ -61,6 +61,15 @@ instance Explain EvalJ where
   premises (EvalJ d rho (ELam x e) (VClosure x' e' rho')) | x == x' && e == e' && rho == rho' = [[]]
 
 {--
+  D, rho |- ei => vi    f(e1,...,en)    arity(f) = n
+  -------------------------------------------------------------------BuiltInApp
+  D, rho |- f e1 ... en => v     (where f ranges over builtin vars)
+--}
+  premises (EvalJ d rho e@(EApp _ _) v) | isBuildInApp e, arity f == length es
+    = [[EvalJ d rho ei vi | ei <- es, let vi = eval d rho ei]]
+    where (EVar f, es) = flattenApp e
+
+{--
   D, rho |- e1 => (closure x -> e',rho')     D, rho |- e2 => v2      D, rho'[x |-> v2] |- e' => v
   ---------------------------------------------------------------------------------------------------App
   D, rho |- e1 e2 => v
@@ -89,6 +98,23 @@ instance Explain EvalJ where
   premises (EvalJ d rho (EIf e1 e2 e3) v)
     | VBool b <- eval d rho e1, b == True  = [[EvalJ d rho e1 (VBool True), EvalJ d rho e2 v]]
     | VBool b <- eval d rho e1, b == False = [[EvalJ d rho e1 (VBool False), EvalJ d rho e3 v]]
+
+
+{--
+  --------------------ListNil
+  D, rho |- [] => []
+--}
+  premises (EvalJ d rho (EList []) (VList [])) = [[]]
+
+
+{--
+  D, rho |- ei => vi
+  ------------------------------------------List
+  D, rho |- [e1, ..., en] |- [v1, ..., vn]
+--}
+  premises (EvalJ d rho (EList es) (VList vs)) | length es == length vs
+    = [[EvalJ d rho ei vi | (ei, vi) <- zip es vs]]
+
 
   premises _ = []
 
