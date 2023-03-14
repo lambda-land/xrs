@@ -19,20 +19,38 @@ snoc = fun xs x -> xs ++ [x]
 
 
 reverse = fun xs -> if xs == [] 
-                    then [] 
-                    else reverse (tail xs) ++ [head xs]
+                     then [] 
+                     else reverse (tail xs) ++ [head xs]
 
 map = fun f xs -> if xs == [] 
-                    then [] 
-                    else [f (head xs)] ++ map f (tail xs)
+                   then [] 
+                   else [f (head xs)] ++ map f (tail xs)
+
+concatMap = fun f xs -> if xs == [] 
+                         then [] 
+                         else f (head xs) ++ concatMap f (tail xs)
+
+insert = fun x ys -> if ys == []
+                      then [[x]]
+                      else [[x] ++ ys] ++ map (cons (head ys)) (insert x (tail ys))
+
+permutations = fun xs -> if xs == []
+                          then [[]]
+                          else concatMap (insert (head xs)) (permutations (tail xs))
+
+
 
 take = fun n xs -> if n == 0 
-                    then [] 
-                    else [head xs] ++ take (n - 1) (tail xs)
+                     then [] 
+                     else [head xs] ++ take (n - 1) (tail xs)
+
+min = fun x y -> if x < y then x else y
+
+minimum = fun xs -> if length xs == 1 then head xs else min (head xs) (minimum (tail xs))
 
 nats = fun n -> if n == 0 
-                then [] 
-                else nats (n - 1) ++ [n]
+                 then [] 
+                 else nats (n - 1) ++ [n]
 
 
 

@@ -70,6 +70,7 @@ library
         Lang.LayoutParser
         Lang.ASTConverter
         Lang.Evaluation
+        Lang.Explanation
 
         -- MyLib,
         -- Lang,

@@ -1,0 +1,56 @@
+
+
+
+Env Based:    D, rho |- e => v
+Target:       e => v
+
+
+Variable capturing rule:    D, rho : e ~> e'
+    where e' is the expression e, with all non closures or global functions substituted for their names.
+
+
+(x,v) in rho    v /= (closure y -> e) 
+-----------------------------------------FillVal
+D, rho : x ~> v
+
+
+------------------FillName
+D, rho : x ~> x
+
+
+D, rho : e1 ~> e1'    D, rho : e2 ~> e2'
+-----------------------------------------FillOp
+D, rho : e1 op e2 ~> e1' op e2'
+
+
+D, rho' : e ~> e'    rho' = rho \\ x
+-------------------------------------------FillLam
+D, rho : fun x -> e ~> fun x -> e'
+
+
+D, rho : e1 ~> e1'     D, rho : e2 ~> e2'
+--------------------------------------------FillApp
+D, rho : e1 e2 ~> e1' e2'
+
+
+D, rho : e1 ~> e1'     D, rho : e2 ~> e2'
+------------------------------------------------------FillLet
+D, rho : let x = e1 in e2 ~> let x = e1' in e2'
+
+
+D, rho : ei ~> ei'
+----------------------------------------------FillList
+D, rho : [e1, ..., en] ~> [e1', ..., en']
+
+
+
+
+Judgment translation: (D, rho |- e => v) >> (e => v)
+
+
+
+D, rho : e ~> e'
+-----------------------------
+D, rho |- e => v >> e' => v
+
+
