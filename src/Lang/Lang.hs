@@ -104,7 +104,28 @@ substVar v e1 e2 = treeMap' subst e2
 
 (/~>) v e = substVar v e
 
+-- f :: [a -> a] -> a -> a
+-- foldl (.) id
 
+fillEnv :: LocalEnv -> Expr -> Expr
+fillEnv env e = foldl (.) id substs e -- foldl (\ v e' -> (/~>) v e') e env'
+  where substs = [v /~> (embed e') | v <- map fst env', let (Just e') = lookup v env']
+        env' = filter (not . isClosure . snd) env
+        isClosure (VClosure _ _ _) = True
+        isClosure _                = False
+
+-- fillEnv env 
+
+
+
+
+embed :: Val -> Expr
+embed (VInt n)  = EInt n
+embed (VBool b) = EBool b
+embed (VStr s)  = EStr s
+embed (VChar c) = EChar c
+embed (VList vs) = EList (map embed vs)
+embed (VClosure _ _ _) = error "cannot embed a closure"
 
 
 {--   Instances   --}
