@@ -169,7 +169,7 @@ findExp (Node (EvalJ d rho e v) ps) = case (e,v, map conclusion ps) of
   (EBool b, VBool b',[]) -> []
   (EChar c, VChar c',[]) -> []
   (EStr s, VStr s',[])   -> []
-  (EList es, VList vs,[]) -> []
+  (EList es, VList vs,_) -> []
 {--
   ----------------------------XVar
     < D, rho |- x => v | [] >
@@ -213,13 +213,11 @@ findExp (Node (EvalJ d rho e v) ps) = case (e,v, map conclusion ps) of
           e2' = fillEnv rho e2
           delta = findExp (head $ filter ((==j) . conclusion) ps)
 {--
-    D, rho |- ei => vi     D, rho : ei ~> ei'     f(v1,...,vn) = v
+    D, rho |- ei => vi      D, rho : ei ~> ei'      f(v1,...,vn) = v
   ---------------------------------------------------------------------XBuiltin
-    < D, rho |- f e1 ... en => v | f e1' ... en' => v >
+    < D, rho |- f e1 ... en => v | f v1 ... vn => v, ei' => vi >
 --}
-  (e,v,ps') | isBuildInApp e -> 
-    where es' = map (fillEnv rho) es
-
+  (EApp e1 e2, v, ps') -> [XEvalJ (EApp e1 (embed v)) v] ++ [XEvalJ ei' vi | (EvalJ d rho ei vi) <- ps', let ei' = fillEnv rho ei]
 
     -- <D, rho |- tail xs | tail [1,2,3] => [2,3]>
 {--
@@ -247,7 +245,7 @@ findExp (Node (EvalJ d rho e v) ps) = case (e,v, map conclusion ps) of
 
   (e,VClosure _ _ _,_) -> []
 
-  (e,v,_) -> [XEvalJ e v]
+  -- (e,v,_) -> [XEvalJ e v]
   _                   -> error "findExp: literal mismatch"
 
 
