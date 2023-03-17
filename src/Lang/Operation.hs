@@ -132,8 +132,8 @@ trace d e = fromJust $ prove (EvalJ d [] e v)
 
 
 instance Show EvalJ where
-  -- show (EvalJ d rho e v) = "{}" ++ "," ++ "[]" ++ " |- " ++ show e ++ " => " ++ show v
-  show (EvalJ d rho e v) = "{}" ++ "," ++ showLocal rho ++ " |- " ++ show e ++ " => " ++ show v
+  show (EvalJ d rho e v) = "{}" ++ "," ++ "[]" ++ " |- " ++ show e ++ " => " ++ show v
+  -- show (EvalJ d rho e v) = "{}" ++ "," ++ showLocal rho ++ " |- " ++ show e ++ " => " ++ show v
     where showGlobal d = "{" ++ (intercalate ", " $ map fst d) ++ "}"
           showLocal rho = "[" ++ (intercalate ", " $ map (\(v, v') -> v ++ " -> " ++ show v') $ filter (\(v,_) -> v `elem` (freeVars e)) rho) ++ "]"
 

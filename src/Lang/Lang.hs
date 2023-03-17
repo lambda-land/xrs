@@ -60,7 +60,9 @@ flattenApp e = case e of
   EApp e1 e2 -> let (e',es) = flattenApp e1 in (e',es ++ [e2])
   _          -> (e,[])
 
-
+unflattenApp :: Expr -> [Expr] -> Expr
+unflattenApp e [] = e
+unflattenApp e (e':es) = unflattenApp (EApp e e') es
 
 -- treeMap :: (Expr -> Expr) -> Expr -> Expr
 -- treeMap f e = case e of

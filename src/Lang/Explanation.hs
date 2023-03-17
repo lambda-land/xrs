@@ -217,8 +217,10 @@ findExp (Node (EvalJ d rho e v) ps) = case (e,v, map conclusion ps) of
   ---------------------------------------------------------------------XBuiltin
     < D, rho |- f e1 ... en => v | f v1 ... vn => v, ei' => vi >
 --}
-  (EApp e1 e2, v, ps') -> [XEvalJ (EApp e1 (embed v)) v] ++ [XEvalJ ei' vi | (EvalJ d rho ei vi) <- ps', let ei' = fillEnv rho ei]
-
+  (EApp e1 e2, v, ps') -> [XEvalJ e' v] ++ exPrems
+    where exPrems = [XEvalJ ei' vi | (EvalJ d rho ei vi) <- ps', let ei' = fillEnv rho ei]
+          vis     = [vi | (XEvalJ _ vi) <- exPrems]
+          e'      = unflattenApp e1 (map embed vis)
     -- <D, rho |- tail xs | tail [1,2,3] => [2,3]>
 {--
     D, rho |- e1 => True        D, rho |- e2 => v
