@@ -97,7 +97,7 @@ library
 
     -- Other library packages from which modules are imported.
     build-depends:
-        base ^>=4.17.0.0,
+        base ^>=4.16.0.0,
         mtl ^>=2.2.2,
         array ^>= 0.5.4.0,
         process,
@@ -131,7 +131,7 @@ executable Main
 
     -- Other library packages from which modules are imported.
     build-depends:
-        base ^>=4.17.0.0,
+        base ^>=4.16.0.0,
         process,
         xrs
 
@@ -156,7 +156,7 @@ executable XViewer
 
     -- Other library packages from which modules are imported.
     build-depends:
-        base ^>=4.17.0.0,
+        base ^>=4.16.0.0,
         mtl ^>=2.2.2,
         xrs
 

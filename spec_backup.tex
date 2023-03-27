@@ -1,0 +1,564 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb}
+\usepackage{proof}
+\usepackage{stmaryrd}
+\usepackage[letterpaper,margin=1cm]{geometry}
+
+
+\title{Specification and Rules for LANG}
+
+
+\def\code#1{\texttt{#1}}
+\def\codesf#1{\textsf{#1}}
+\def\por{\ | \ }
+\def\rt{\Rightarrow}
+\def\binop{\ \text{\textbullet}\ }
+\def\xj#1#2{\langle #1 \ | \ #2 \rangle}
+\def\envj#1#2#3{D, #1 \vdash #2 \rt #3}
+\def\noenvj#1#2{#1 \rt #2}
+\def\xnf#1#2#3{D,#1 : #2 \rightsquigarrow #3}
+\def\sem#1{\llbracket #1 \rrbracket}
+
+
+\begin{document}
+
+\maketitle
+\section*{Syntax}
+
+%\begin{gather*}
+%v\in Name \qquad 	n\in \mathbb Z \qquad b \in \{\code{True},\code{False}\}\qquad \binop\in \{\code{+},\code{-},\code{*},\code{/},\code{\&\&},\code{||}\}
+%\end{gather*}
+%\begin{align*}
+%lit \in \textsc{Literal} ::= \ & v \por n \por b\\\\
+%pat \in \textsc{Pattern} ::=\ & \code{( cons $lit$ $pat$ )}\\
+%						\por & \code{nil}\\
+%						\por & lit\\\\
+%list \in \textsc{List} ::= \ & \code{cons $e$ $list$}\\
+%							\por & \code{nil}\\\\
+%e\in \textsc{Expr} ::= \ & lit\\
+%				\por & list\\
+%				\por & e \binop e\\
+%				\por & \code{\char`\\\ $v$ -> $e$}\\
+%				\por & e \ e\\
+%				\por & \code{let $v$ = $e$ in $e$}\\
+%				\por & \code{letrec $v$ = $e$ in $e$ }\\
+%				\por & \code{case $e$ of \char`\{ \ $($ $pat$ -> $e$ ; $)^*$ \char`\}}
+%\end{align*}
+%
+%\section*{Example}
+%\begin{align*}
+%\code{letrec odds xs = case xs of \char`\{}&\ \  \code{nil -> [];}\\
+%&\ \ \code{(cons x (cons y ys)) -> cons x (odds ys);}\\
+%\code{kassia\char`\}}	& \code{ in odds [1,2,3]}
+%\end{align*}
+
+
+
+\begin{gather*}
+v\in \textsc{Name} \qquad 	n\in \mathbb Z \qquad b \in \{\codesf{True},\codesf{False}\}\qquad c\in \{\codesf a, \codesf b,\ldots\}\qquad \binop\in \{\code{+},\code{-},\code{*},\code{/},\code{\&\&},\code{||},\code{++},\code{==},\code{>},\code{<},\code{>=},\code{<=}\}
+\end{gather*}
+\begin{align*}
+%lit \in \textsc{Literal} ::= \ & v \por n \por b\\
+str \in \textsc{String} ::= \code{"} \ c^* \ \code{"}\\\\
+list(t) \in \textsc{List}(t) ::= \ & \codesf{[} \ t (\codesf{,} \ t)^* \ \codesf{]} \por \codesf{[ ]}\\\\
+f \in \textsc{BuiltIn} ::= \ & \codesf{head} \por \codesf{tail}\\\\
+pat \in \textsc{Pattern} ::=\ & b\qquad :(\\\\
+e\in \textsc{Expr} ::= \ & v \por n \por b\\
+				\por & \codesf{' $c$ '}\\
+				\por & str\\
+				\por & list(e)\\
+				\por & e \binop e\\
+				\por & \codesf{fun} \ v \ \code{->}\ e\\
+				\por & e \ e\\
+				\por & \codesf{let $v$ = $e$ in $e$}\\
+				\por & \codesf{if $e$ then $e$ else $e$}\\
+				\por & \codesf{case $e$ of \code{\char`\{} \ $($ $pat$ \code{->} $e$ \code; $)^*$ \code{\char`\}}}\\
+				\por & f \ e_1 \ \ldots \ e_n \qquad \text{where $\textsf{arity}(f)=n$}\\\\
+val \in \textsc{Value} ::= \ & n \por b \por c \por str \por list(val) \por  (\textsf{closure} \ v\to e,\rho)\\\\
+\rho,\sigma \in \textsc{LocalEnv} \subseteq &\left(\textsc{Name}\times \textsc{Value}\right)^*\\\\
+D \in \textsc{GlobalEnv} \subseteq &\left(\textsc{Name}\times \textsc{Expr}\right)^*\\\\
+stm \in \textsc{Assign} ::= \ & \codesf{$v$ = $e$}\\\\
+prog \in \textsc{Program} ::= \ & (stm \ \code{\char`\\n})^* \\\\
+\end{align*}
+
+%\section*{Example}
+%\begin{align*}
+%\code{letrec odds xs = case xs of \char`\{}&\ \  \code{nil -> [];}\\
+%&\ \ \code{(cons x (cons y ys)) -> cons x (odds ys);}\\
+%\code{kassia\char`\}}	& \code{ in odds [1,2,3]}
+%\end{align*}
+\pagebreak
+
+
+\pagebreak
+\section*{Denotational Semantics}
+
+
+\section*{Operational Semantics}
+
+$$
+\textsc{EvalJ} ::= \textsc{GlobalEnv} \times \textsc{LocalEnv} \times \textsc{Expr} \times \textsc{Value}
+$$
+$$
+\envj{\rho}{e}{v}\subseteq \textsc{EvalJ}
+$$
+
+\
+
+\
+
+
+\begin{figure*}[h]
+$$
+\infer[\textsc{Lit}]{
+	D,\rho \vdash v \Rightarrow v
+}{
+}
+$$
+
+$$
+\infer[\textsc{LocalVar}]{
+	D,\rho \vdash x \Rightarrow v
+}{
+	(x,v) \in \rho
+}
+$$
+
+$$
+\infer[\textsc{GlobalVar}]{
+	D,\rho \vdash x \Rightarrow v
+}{
+	(x,e) \in D
+	&
+	D,\{\} \vdash e \Rightarrow v
+}
+$$
+
+$$
+\infer[\textsc{Op}]{
+	D,\rho \vdash e_1 \binop e_2 \Rightarrow v
+}{
+	D,\rho \vdash e_1 \Rightarrow v_1
+	&
+	D,\rho \vdash e_2 \Rightarrow v_2
+	&
+	\llbracket \binop\rrbracket(v_1,v_2) = v
+}
+$$
+
+$$
+\infer[\textsc{Abs}]{
+	D,\rho \vdash \codesf{fun } x\code{ -> } e \Rightarrow (\codesf{closure}\ x\to e,\rho)
+}{
+}
+$$
+
+$$
+\infer[\textsc{App}]{
+	D,\rho \vdash e_1\ e_2 \Rightarrow v
+}{
+	D,\rho \vdash e_1 \Rightarrow (\codesf{closure}\ x\to e,\sigma)
+	&
+	D,\rho \vdash e_2 \Rightarrow v_2
+	&
+	D,\sigma[x\mapsto v_2] \vdash e \Rightarrow v
+}
+$$
+
+$$
+\infer[\textsc{Let}]{
+	D,\rho \vdash \codesf{let}\ x=e_1\ \codesf{in}\ e_2 \Rightarrow v
+}{
+	D,\rho \vdash e_1 \Rightarrow v_1
+	&
+	D,\rho[x\mapsto v_1] \vdash e_2 \Rightarrow v
+}
+$$
+
+$$
+\infer[\textsc{BuiltIn}]{
+	\envj{\rho}{f \ e_1 \ \ldots \ e_n}{v}
+}{
+	\envj{\rho}{e_i}{v_i}
+	&
+	\sem{f}(v_1,\ldots,v_n)=v
+}
+$$
+
+$$
+\infer[\textsc{ListNil}]{
+	\envj{\rho}{\codesf{[ ]}}{\codesf{[ ]}}
+}{}
+\qquad
+\infer[\textsc{List}]{
+	\envj{\rho}{\codesf{[}e_1,\ldots,e_n\codesf ]}{\codesf [v_1,\ldots,v_n\codesf ]}
+}{
+	\envj{\rho}{e_i}{v_i}
+}
+$$
+
+$$
+\infer[\textsc{IfTrue}]{
+	D,\rho \vdash \codesf{if}\ e_1\ \codesf{then}\ e_2\ \codesf{else}\ e_3 \Rightarrow v_1
+}{
+	D,\rho \vdash e_1 \Rightarrow \codesf{True}
+	&
+	D,\rho \vdash e_2 \Rightarrow v_1
+}
+\qquad
+\infer[\textsc{IfFalse}]{
+	D,\rho \vdash \codesf{if}\ e_1\ \codesf{then}\ e_2\ \codesf{else}\ e_3 \Rightarrow v_2
+}{
+	D,\rho \vdash e_1 \Rightarrow \codesf{False}
+	&
+	D,\rho \vdash e_3 \Rightarrow v_2
+}
+$$
+
+\caption{Operational Semantics for LANG.}
+\end{figure*}
+
+%\begin{figure*}[h]
+%\begin{align*}
+%\sem{\code{+}}(a,b)&=a+b\\
+%\sem{\code{*}}(a,b)&=a \cdot b\\
+%&\vdots\\
+%\sem{\code{++}}(l_1,l_2)&=l_1l_2\\
+%\sem{\code{>}}(a,b)&=\ldots\\
+%&\vdots
+%\end{align*}
+%\begin{align*}
+%\sem{\codesf{head}}(x:xs)&=x\\
+%\sem{\codesf{tail}}(x:xs)&=xs
+%\end{align*}
+%\end{figure*}
+
+
+
+
+
+\pagebreak
+\section*{Explanation Form}
+
+$$
+\textsc{NoEnvEvalJ} ::=\textsc{Expr}\times\textsc{Value}
+$$
+$$
+\noenvj{e}{v}\subseteq \textsc{NoEnvEvalJ}
+$$
+
+$$
+\Delta\in \textsc{XEvalJ} ::= \textsc{EvalJ}\times \textsc{NoEnvEvalJ}^*
+$$
+$$
+\xj{\envj{\rho}{e}{v}}{\Delta}
+$$
+
+\
+
+\
+
+\begin{figure*}[h]
+$$
+\infer[\textsc{XLit}]{
+    \langle D, \rho \vdash v \Rightarrow v \ | \ [\ ] \ \rangle
+}{}
+$$
+
+$$
+\infer[\textsc{XVar}]{
+    \langle D, \rho \vdash x \Rightarrow v \ | \ [\  ]\  \rangle
+}{}
+$$
+
+$$
+\infer[\textsc{XBinOp}]{
+    \langle D, \rho \vdash e_1 \binop e_2 \Rightarrow v \ | \ e_1' \binop e_2' \Rightarrow v \rangle
+}{
+    D, \rho \vdash e_1 \Rightarrow v_1
+    &
+    D, \rho \vdash e_2 \Rightarrow v_2
+    &
+    \llbracket \binop \rrbracket(v_1, v_2) = v
+    &
+    D, \rho : e_1 \rightsquigarrow e_1'
+    &
+    D, \rho : e_2 \rightsquigarrow e_2'
+}
+$$
+
+$$
+\infer[\textsc{XLetFun}]{
+    \langle D, \rho \vdash \codesf{let } x = e_1 \codesf{ in } e_2 \Rightarrow v \ | \ e_2' \Rightarrow v \rangle
+}{
+    D, \rho \vdash e_1 \Rightarrow v_1
+    &
+    v_1 = (\textsf{closure } z \to e', \rho')
+    &
+    D, \rho[x \mapsto v_1] \vdash e_2 \Rightarrow v_2
+    &
+    D, \rho[x \mapsto v_1] : e_2 \rightsquigarrow e_2'
+}
+$$
+
+$$
+\infer[\textsc{XLet}]{
+    \langle D, \rho \vdash \codesf{let } x = e_1 \codesf{ in } e_2 \Rightarrow v \ | \ e_1' \Rightarrow v_1, e_2' \Rightarrow v \rangle
+}{
+    D, \rho \vdash e_1 \Rightarrow v_1
+    &
+    D, \rho[x \mapsto v_1] \vdash e_2 \Rightarrow v
+    &
+    D, \rho[x \mapsto v_1] : e_2 \rightsquigarrow e_2'
+    &
+    D, \rho : e_1 \rightsquigarrow e_1'
+}
+$$
+
+$$
+\infer[\textsc{XApp}]{
+	\langle D, \rho \vdash e_1 \ e_2 \Rightarrow v \ | \ e_1' \ v_2 \Rightarrow v, e_2' \Rightarrow v_2, \Delta\rangle
+}{
+	D, \rho  \vdash e_1 \Rightarrow (\codesf{closure} \ x \to e,\sigma )
+	&
+	\xj{D, \rho \vdash e_2 \Rightarrow v_2}{\Delta}
+	&
+	D, \sigma[x \mapsto v_2] \vdash e \Rightarrow v
+	&
+	D,\rho: e_1 \rightsquigarrow e_1'
+	&
+	D,\rho : e_2 \rightsquigarrow e_2' 
+}
+$$
+
+$$
+\infer[\textsc{XBuiltin}]{
+	\langle D, \rho \vdash f \ e_1 \ \dots \ e_n \Rightarrow v \ | \ f \ v_1 \ \dots \ v_n \Rightarrow v, e_i' \Rightarrow v_i \rangle
+}{
+	D, \rho \vdash e_i \Rightarrow v_i
+	&
+	D, \rho : e_i \rightsquigarrow e_i'
+	&
+	\llbracket f\rrbracket(v_1, \dots, v_n) = v
+}
+$$
+
+$$
+\infer[\textsc{XIfTrue}]{
+	\langle D, \rho \vdash \textsf{if } e_1 \ \textsf{then } e_2 \ \textsf{else } e_3 \Rightarrow v \ | \ e_1' \Rightarrow \textsf{True}, e_2' \Rightarrow v \rangle
+}{
+	D, \rho \vdash e_1 \Rightarrow \textsf{True}
+	&
+	D, \rho \vdash e_2 \Rightarrow v
+	&
+	D, \rho : e_1 \rightsquigarrow e_1'
+	&
+	D, \rho : e_2 \rightsquigarrow e_2'
+}
+$$
+
+$$
+\infer[\textsc{XIfFalse}]{
+	\langle D, \rho \vdash \textsf{if } e_1 \ \textsf{then } e_2 \ \textsf{else } e_3 \Rightarrow v \ | \ e_1' \Rightarrow \textsf{False}, e_3' \Rightarrow v \rangle
+}{
+	D, \rho \vdash e_1 \Rightarrow \textsf{False}
+	&
+	D, \rho \vdash e_3 \Rightarrow v
+	&
+	D, \rho : e_1 \rightsquigarrow e_1'
+	&
+	D, \rho : e_3 \rightsquigarrow e_3'
+}
+$$
+\caption{Operational Semantics for LANG in Explanation Form}
+\end{figure*}
+
+\pagebreak
+
+\section*{Explanatory Form for Expressions}
+
+The judgment $\xnf \rho e e'$ means that $e$, in the context of $D$ and $\rho$, has the explanatory form $e'$.
+
+
+
+\begin{figure*}[h]
+
+$$
+\infer[\textsc{EFVal}]{
+    D, \rho : x \rightsquigarrow v
+}{
+    (x, v) \in \rho
+    &
+    v \neq (\textsf{closure } y \to e)
+}
+$$
+
+$$
+\infer[\textsc{EFName}]{
+    D, \rho : x \rightsquigarrow x
+}{}
+$$
+
+$$
+\infer[\textsc{EFOp}]{
+    D, \rho : e_1 \binop e_2 \rightsquigarrow e_1' \binop e_2'
+}{
+    D, \rho : e_1 \rightsquigarrow e_1'
+    &
+    D, \rho : e_2 \rightsquigarrow e_2'
+}
+$$
+
+
+$$
+\infer[\textsc{EFLam}]{
+    D, \rho : \codesf{fun } x \ \code{->}\  e \rightsquigarrow \codesf{fun } x \ \code{->}\ e'
+}{
+    D, \sigma : e \rightsquigarrow e'
+    &
+    \sigma = \rho \backslash x
+}
+$$
+
+$$
+\infer[\textsc{EFApp}]{
+    D, \rho : e_1 \ e_2 \rightsquigarrow e_1' \ e_2'
+}{
+    D, \rho : e_1 \rightsquigarrow e_1'
+    &
+    D, \rho : e_2 \rightsquigarrow e_2'
+}
+$$
+
+$$
+\infer[\textsc{EFLet}]{
+    D, \rho : \codesf{let } x = e_1 \codesf{ in } e_2 \rightsquigarrow \codesf{let } x = e_1' \codesf{ in } e_2
+}{
+    \xnf{\rho}{e_1}{e_1'}
+    &
+    \xnf{\rho}{e_2}{e_2'}
+}
+$$
+
+$$
+\infer[\textsc{EFIf}]{
+	D, \rho : \codesf{if}\ e_1\ \codesf{then}\ e_2\ \codesf{else}\ e_3 \rightsquigarrow \codesf{if}\ e_1'\ \codesf{then}\ e_2'\ \codesf{else}\ e_3'
+}{
+	D, \rho : e_1 \rightsquigarrow e_1'
+	&
+	D, \rho : e_2 \rightsquigarrow e_2'
+	&
+	D, \rho : e_3 \rightsquigarrow e_3'
+}
+$$
+
+$$
+\infer[\textsc{EFList}]{
+    D, \rho : \codesf [e_1,\ldots,e_n\codesf ] \rightsquigarrow \codesf [e_1',\ldots,e_n'\codesf ]
+}{
+    D, \rho : e_i \rightsquigarrow e_i'
+}
+$$	
+
+\caption{Rules for the Explainitory Form for expressions}
+\end{figure*}
+
+\pagebreak
+
+
+%
+%\section*{Operational Semantics OLD!}
+%
+%\begin{gather*}
+%\infer[]{\rho : f \ e \rt v}{\rho : e \rt \lambda x.e' & \rho : e \rt v' & \rho[ x\mapsto v' ]: e'\rt v}
+%\end{gather*}
+%
+%\section*{XL Operational Semantics}
+%\begin{gather*}
+%\infer[]{\textbf X\{ e_1 \ (e_2 \ e_3)\rt v \por e_1 \ v' \rt v\}}{\textbf P\{e_1 \rt \lambda x . e'\} & e_2 \ e_3 \rt v' & [v'/x]e'\rt v}	
+%\end{gather*}
+%
+%\begin{gather*}
+%\infer[]{\textbf X\{\code{let $x$ = $e_1$ in $e_2$}\rt v \ | \ e_2\rt v\}}{\textbf P\{e_1 \rt v'\} & v'=\lambda z.e & \textbf P\{[v'/x]e_2\rt v\}}
+%\end{gather*}
+%
+%\begin{gather*}
+%\infer[]{\textbf X\{\code{let $x$ = $e_1$ in $e_2$}\rt v \ | \ e_2\rt v\}}{e_1 \rt v'& \textbf P\{[v'/x]e_2\rt v\}}
+%\end{gather*}
+%
+%
+%\section*{Post Tagging}
+%\begin{gather*}
+%\infer[]{}{if condition example }	
+%\end{gather*}
+%
+%\begin{gather*}
+%\infer[]{}{e_1\rt \code{True},\code{if $e_1'$ then $e_2'$ else $e_3'$} \rt v_1\vdash \code{if $e_1$ then $e_2$ else $e_3$} \rt v & }	
+%\end{gather*}
+%
+%
+%
+%
+%\pagebreak
+%
+%\begin{center}
+%\begin{tabular}{c}
+%$\dfrac{}{D,\rho \vdash v \Rightarrow v}$ \textbf{(Lit)} \\
+%\\
+%$\dfrac{(x,v) \in \rho}{D,\rho \vdash x \Rightarrow v}$ \textbf{(LocalVar)} \\
+%\\
+%$\dfrac{(x,e) \in D \qquad D,\{\} \vdash e \Rightarrow v}{D,\rho \vdash x \Rightarrow v}$ \textbf{(GlobalVar)} \\
+%\\
+%$\dfrac{D,\rho \vdash e_1 \Rightarrow v_1 \qquad D,\rho \vdash e_2 \Rightarrow v_2 \qquad \llbracket op\rrbracket(v_1,v_2) = v}{D,\rho \vdash e_1\ op\ e_2 \Rightarrow v}$ \textbf{(Op)} \\
+%\\
+%$\dfrac{}{D,\rho \vdash \code{fun } x\code{ -> } e \Rightarrow (\code{closure}\ x\to e,\rho)}$ \textbf{(Abs)} \\
+%\\
+%$\dfrac{D,\rho \vdash e_1 \Rightarrow (\code{closure}\ x\to e',\rho') \qquad D,\rho \vdash e_2 \Rightarrow v_2 \qquad D,\rho'[x\mapsto v_2] \vdash e' \Rightarrow v}{D,\rho \vdash e_1\ e_2 \Rightarrow v}$ \textbf{(App)} \\
+%\\
+%$\dfrac{D,\rho \vdash e_1 \Rightarrow v' \qquad D,\rho[x\mapsto v'] \vdash e_2 \Rightarrow v}{D,\rho \vdash \code{let}\ x=e_1\ \code{in}\ e_2 \Rightarrow v}$ \textbf{(Let)} \\
+%\\
+%$\dfrac{D,\rho \vdash e_1 \Rightarrow \code{True} \qquad D,\rho \vdash e_2 \Rightarrow v_1}{D,\rho \vdash \code{if}\ e_1\ \code{then}\ e_2\ \code{else}\ e_3 \Rightarrow v_1}$ \textbf{(IfTrue)} \\
+%\\
+%$\dfrac{D,\rho \vdash e_1 \Rightarrow \code{False} \qquad D,\rho \vdash e_3 \Rightarrow v_2}{D,\rho \vdash \code{if}\ e_1\ \code{then}\ e_2\ \code{else}\ e_3 \Rightarrow v_2}$ \textbf{(IfFalse)}
+%\end{tabular}
+%\end{center}
+%
+%\pagebreak
+%\begin{gather*}
+%\infer{\langle D, \rho \vdash v \Rightarrow v \ | \ [] \rangle}{\textsf{XLit}}
+%\\\\
+%\infer{\langle D, \rho  \vdash x \Rightarrow v \ | \ [] \rangle}{\textsf{XVar}}
+%\\\\
+%\infer{\langle D, \rho \vdash e_1 + e_2 \Rightarrow v \ | \ e_1' + e_2' \Rightarrow v\rangle}{ D, \rho  \vdash e_1 \Rightarrow v_1 \quad e_1 \rightsquigarrow e_1' \quad  D, \rho \vdash e_2 \Rightarrow v_2 \quad e_2 \rightsquigarrow e_2' \quad v_1 + v_2 = v}{\textsf{XAdd}}
+%\\\\
+%\infer{\langle D, \rho \vdash \textsf{let } x = e_1 \textsf{ in } e_2 \Rightarrow v \ | \ e_1' \Rightarrow v_1, e_2' \Rightarrow v\rangle}{ D, \rho  \vdash e_1 \Rightarrow v_1 \quad e_1 \rightsquigarrow e_1' \quad D, \rho[x \mapsto v_1]  \vdash e_2 \Rightarrow v \quad e_2 \rightsquigarrow e_2'}{\textsf{XLet}}
+%\\\\
+%\infer{\langle D, \rho \vdash \textsf{let } x = e_1 \textsf{ in } e_2 \Rightarrow v \ | \ e_2' \Rightarrow v\rangle}{ D, \rho  \vdash e_1 \Rightarrow v_1 \quad v_1= (\textsf{closure} \ z \to e',\rho') \quad D, \rho[x \mapsto v_1]  \vdash e_2 \Rightarrow v \quad e_2 \rightsquigarrow e_2'}{\textsf{XLetFun}}
+%\end{gather*}
+%$$
+%\infer[\textsc{XApp}]{
+%	\langle D, \rho \vdash e_1 \ e_2 \Rightarrow v \ | \ e_1' \ v_2 \Rightarrow v, e_2' \Rightarrow v_2, \Delta\rangle
+%}{
+%	D, \rho  \vdash e_1 \Rightarrow v_1
+%	&
+%	(\textsf{closure} \ x \to e',\rho' ) = v_1
+%	&
+%	D, \rho'[x \mapsto v_2] \vdash e' \Rightarrow v
+%	&
+%	\langle D, \rho \vdash e_2 \Rightarrow v_2 \ | \ \Delta\rangle
+%	&
+%	D,\rho: e_1 \rightsquigarrow e_1'
+%	&
+%	D,\rho : e_2 \rightsquigarrow e_2' 
+%}
+%$$
+
+
+
+\end{document}
+
+
+
+
+
+

@@ -9,6 +9,10 @@ id = fun x -> x
 
 const = fun x y -> x
 
+add = fun x y -> x + y
+
+inc = add 1
+
 length = fun xs -> if xs == [] 
                     then 0 
                     else 1 + length (tail xs)

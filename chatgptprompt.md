@@ -26,6 +26,30 @@ The latex version
 	D,\rho : e_2 \rightsquigarrow e_2' 
 }
 ```
+.
+
+Here is another example:
+
+```txt
+D, rho : e1 ~> e1'     D, rho : e2 ~> e2'     D, rho : e3 ~> e3'
+--------------------------------------------------------------FillIf
+D, rho : if e1 then e2 else e3 ~> if e1' then e2' else e3'
+```
+
+which has the corresponding LaTeX source
+
+```latex
+\infer[\textsc{FillIf}]{
+	D, \rho : \codesf{if}\ e_1\ \codesf{then}\ e_2\ \codesf{else}\ e_3 \rightsquigarrow \codesf{if}\ e_1'\ \codesf{then}\ e_2'\ \codesf{else}\ e_3'
+}{
+	D, \rho : e_1 \rightsquigarrow e_1'
+	&
+	D, \rho : e_2 \rightsquigarrow e_2'
+	&
+	D, \rho : e_3 \rightsquigarrow e_3'
+}
+```
+.
 
 I am going to give you a list of these inference rules in ASCII, and I would like you to give me the corresponding latex source code for each. 
 

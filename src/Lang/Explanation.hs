@@ -203,15 +203,16 @@ findExp (Node (EvalJ d rho e v) ps) = case (e,v, map conclusion ps) of
     where e1' = fillEnv rho e1
           e2' = fillEnv rho' e2
 {-- 
-    D, rho |- e1 = (closure x -> e', rho')           < D, rho |- e2 => v2 | Delta >     D, rho'[x |-> v2] |- e' => v
+    D, rho |- e1 = (closure x -> e', rho')           < D, rho |- e2 => v2 | Delta >     < D, rho'[x |-> v2] |- e' => v | Sigma >
     D, rho : e1 ~> e1'           D, rho : e2 ~> e2'
   ---------------------------------------------------------------------------------------------------------------------XApp
-    < D, rho |- e1 e2 => v | e1' v2 => v, e2' => v2, Delta >
+    < D, rho |- e1 e2 => v | e1' v2 => v, e2' => v2, Delta, Sigma >
 --}
-  (EApp e1 e2, v, [EvalJ _ _ e1p (VClosure _ _ _), j@(EvalJ _ _ e2p v2), EvalJ _ _ _ _]) -> [XEvalJ (EApp e1' (embed v2)) v] ++ delta
+  (EApp e1 e2, v, [EvalJ _ _ e1p (VClosure _ _ _), j@(EvalJ _ _ e2p v2), EvalJ _ _ _ _]) -> [XEvalJ (EApp e1' (embed v2)) v, XEvalJ e2' v2] ++ delta ++ sigma
     where e1' = fillEnv rho e1
           e2' = fillEnv rho e2
           delta = findExp (head $ filter ((==j) . conclusion) ps)
+          sigma = [] -- findExp (ps !! 2)
 {--
     D, rho |- ei => vi      D, rho : ei ~> ei'      f(v1,...,vn) = v
   ---------------------------------------------------------------------XBuiltin
@@ -242,7 +243,7 @@ findExp (Node (EvalJ d rho e v) ps) = case (e,v, map conclusion ps) of
           e3' = fillEnv rho e3
 
 
-
+-- rho |- if e1 then e2 else e3 -------------> < D, rho |- if e1 then e2 else e3 => v | e1' => True, e3' => v >
 
 
   (e,VClosure _ _ _,_) -> []
@@ -253,11 +254,14 @@ findExp (Node (EvalJ d rho e v) ps) = case (e,v, map conclusion ps) of
 
 data XTag = XTag EvalJ [XEvalJ]
 
-tagJudge :: Proof EvalJ -> XTag
-tagJudge p = XTag (conclusion p) (findExp p)
+tagJudge :: EvalJ -> XTag
+tagJudge j = XTag j (findExp (prove' j))
+
+tagJudge' :: Proof EvalJ -> XTag
+tagJudge' p = XTag (conclusion p) (findExp p)
 
 tagProof :: Proof EvalJ -> Proof XTag
-tagProof p = Node (tagJudge p) (map tagProof (children p))
+tagProof p = Node (tagJudge' p) (map tagProof (children p))
 
 
 instance Show XEvalJ where
@@ -272,11 +276,66 @@ instance Show XTag where
 --   show (XTag j xs) = intercalate ", " $ map show xs
 
 
+
+-- It is the case that `j`, because
+-- display (tagProof $ proof j)...
+
+-- pf = taggedProof (length [1,2,3,4,5] => 5)
+-- display pf = [1 + length [2,3,4,5] => 5, tail [1,2,3,4,5] => [2,3,4,5]]
+
+-- display :: Proof XTag -> [XEvalJ]
+-- display (Node (XTag j xs) _) = xs
+
+
+rightProofTree :: Proof XTag -> Proof [XEvalJ]
+rightProofTree (Node (XTag j xs) cs) = Node xs (map rightProofTree cs)
+
+
+
+
+
+
+
+-- Two options: modify app rule, or do post-processing. < length ([1, 2, 3, 4, (3 + 9)]) => 5 | length ([1, 2, 3, 4, 12]) => 5 >
+-- App rule is correct in the sense that it handles expressions of tthe form e1 (e2 ... en), but not e1 e2. 
+
+
+
+
+
+
+
 --
+
+
+-- 
+-- length [1,2,3,4,5] => 5
+
+-- 
+-- 1 + length [2,3,4,5] => 5, tail [1,2,3,4,5] => [2,3,4,5]
+-- 
+-- 1 + length (tail [1,2,3,4,5]) => 5, tail [1,2,3,4,5] => [2,3,4,5]
+
+-- length (tail [1,2,3,4,5]) => 4
+-- length [2,3,4,5] => 4
+
+
+-- length (tail (tail [1,2,3,4,5])) => 3
+
+-- tail [1,2,3,4,5] => [2,3,4,5], tail [2,3,4,5] => [3,4,5], length [3,4,5] => 3
+
+
+-- inc (add (add 10 20) (add 30 40))
+
 
 
 -- class Explain j => Tagged j a where
 --   explain :: j -> [a] 
+
+
+
+-- class Explain j , Tagged j a => Display xs where
+--   display 
 
 -- data Tag = Tag { tag :: String, exps :: [Tag] } deriving (Show, Eq)
 

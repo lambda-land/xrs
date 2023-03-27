@@ -86,6 +86,11 @@ prove :: Explain j => j -> Maybe (Proof j)
 prove j | (p:_) <- proofs j = Just p
 prove _                     = Nothing
 
+-- Returns a proof of a given judgment or fails if the judgment is not provable.
+prove' :: Explain j => j -> Proof j
+prove' = fromJust . prove
+
+
 
 -- proofs :: Explain judge => judge -> [Proof judge]
 -- proofs j = concatMap (map (Node j) . lss . map proofs) (premises j)
