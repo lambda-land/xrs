@@ -73,3 +73,5 @@ peano = fun n -> if n == 0
                     else foundation (peano (n - 1))
 
 
+add2 = fun x y z -> x + y + z
+

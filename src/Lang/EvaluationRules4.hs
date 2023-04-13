@@ -224,12 +224,12 @@ findExp (Node (EvalJ d rho e v) ps) = case (e,v, map conclusion ps) of
   (EApp e1 e2, VClosure _ _ _, [EvalJ _ _ e1p (VClosure _ _ _), EvalJ _ _ e2p v2, EvalJ _ _ _ _]) -> [XEvalJ e2' v2] ++ greeks
     where e1' = fillEnv rho e1
           e2' = fillEnv rho e2
-          greeks =  concatMap findExp (take 1 ps) -- findExp (ps !! 0) -- [] -- findExp (ps !! 1) -- concatMap findExp ps
+          greeks = findExp (ps !! 0) -- [] -- findExp (ps !! 1) -- concatMap findExp ps
   (EApp e1 e2, v, [EvalJ _ _ e1p (VClosure _ _ _), EvalJ _ _ e2p v2, EvalJ _ _ _ _]) | [] <- findExp (ps !! 1) -> greeks
     where e1' = fillEnv rho e1
           e2' = fillEnv rho e2
-          greeks = concatMap findExp ps 
-
+          greeks = concatMap findExp ps
+  
   (EApp e1 e2, v, [EvalJ _ _ e1p (VClosure _ _ _), EvalJ _ _ e2p v2, EvalJ _ _ _ _]) -> [XEvalJ (EApp e1' (embed v2)) v, XEvalJ e2' v2] ++ greeks
     where e1' = fillEnv rho e1
           e2' = fillEnv rho e2
@@ -429,91 +429,3 @@ rightProofTree (Node (XTag j xs) cs) = Node xs (map rightProofTree cs)
 -----------------------------------------------------------------------------
     < D, [] |- let x = fac 3 in x + x => 12 | fac 3 => 6, 6 + 6 => 12 > 
 --}
-
-
-
-evaluationExamples :: [XTag]
-evaluationExamples = map (conclusion . tagProof . traceExample) examples
-  where examples = [ "length [10,20,30,40,50]"
-                   , "length (tail [10,20,30,40,50])"
-                   , "length (tail (tail [10,20,30,40,50]))"
-                   , "add (4 + 5) (6 + 7)"
-                   , "add (add 4 5) (add 6 7)"
-                   , "add (id 1) 2"
-                   , "id add 1 2"
-                   ]
-
-
-
-
-< length ([10, 20, 30, 40, 50]) => 5 | ([10, 20, 30, 40, 50] == []) => False, (1 + length (tail ([10, 20, 30, 40, 50]))) => 5, length ([20, 30, 40, 50]) => 4, tail ([10, 20, 30, 40, 50]) => [20, 30, 40, 50] >
-< length (tail ([10, 20, 30, 40, 50])) => 4 | length ([20, 30, 40, 50]) => 4, tail ([10, 20, 30, 40, 50]) => [20, 30, 40, 50] >
-< length (tail (tail ([10, 20, 30, 40, 50]))) => 3 | length ([30, 40, 50]) => 3, tail (tail ([10, 20, 30, 40, 50])) => [30, 40, 50], tail ([20, 30, 40, 50]) => [30, 40, 50], tail ([10, 20, 30, 40, 50]) => [20, 30, 40, 50] >
-< add ((4 + 5)) ((6 + 7)) => 22 | add ((4 + 5)) 13 => 22, (6 + 7) => 13, (4 + 5) => 9 >
-< add (add 4 5) (add 6 7) => 22 | add (add 4 5) 13 => 22, add 6 7 => 13, add 4 5 => 9, 4 => 4, (4 + 5) => 9, 6 => 6, (6 + 7) => 13 >
-< add (id 1) 2 => 3 | id 1 => 1, (1 + 2) => 3 >
-< id add 1 2 => 3 | 1 => 1, add => (closure x -> (fun y -> (x + y))), (1 + 2) => 3 >
-
-
-
-
-< length (tail (tail ([10, 20, 30, 40, 50]))) => 3 | 
-tail ([10, 20, 30, 40, 50]) => [20, 30, 40, 50],
-tail ([20, 30, 40, 50]) => [30, 40, 50],          
-length ([30, 40, 50]) => 3
->
-
-< add (id 1) 2 => 3 | 
-id 1 => 1,
-add 1 2 => 3
->
-
-f x = length (tail x)
-
-< f [5,6,7] => 2 | f [5,6,7] => 2 >
-< length (tail [5,6,7]) => 2 | tail [5,6,7] => [6,7], length [6,7] => 2 >
-< id add 1 2 => 3 | id add 1 2 => 3 >
-< id add 1 2 => 3 | id add => add, add 1 2 => 3 > -- preferred
-
-< add (add 2 3) (add 4 5) => 14 | add (add 2 3) 9 => 14, add 4 5 => 9 >
-
-< add (add 2 3) (add 4 5) => 14 | add 5 9 => 14, add 4 5 => 9, add 2 3 => 5 >
-
-
---------------------------------------------------
-< e1 e2 => v | e1 v2 => v, e2 => e2, Delta >
-
-
-
-
-< f [5,6,7] => 2 | f [5,6,7] => 2 >
-< length (tail [5,6,7]) => 2 | tail [5,6,7] => [6,7], length [6,7] => 2 >
-< id add 1 2 => 3 | id add 1 2 => 3, add 1 => ? >
-< id add 1 2 => 3 | id add => add, add 1 2 => 3, add 1 => ? >
-< add 1 2 => 3 | add => (closure x -> (fun y -> x + y)), add 1 => (closure y -> 1 + y), add 1 2 => 3 >
-< add (add 2 3) (add 4 5) => 14 | add (add 2 3) 9 => 14, add 4 5 => 9 >
-
-
-< f v1 v2 => w | f v1 v2 => w >
-< f (e1 e2) v2 => w | e1 e2 => v1, f v1 v2 => w >
-
-< add (add 2 3) (add 4 5) => 14 | add 5 9 => 14, add 4 5 => 9, add 2 3 => 5 >
-
-
-
-
-
------------------------------------------------------------------------------- Apr 12
-< length (tail (tail ([10, 20, 30, 40, 50]))) => 3 | 
-tail ([10, 20, 30, 40, 50]) => [20, 30, 40, 50],
-tail ([20, 30, 40, 50]) => [30, 40, 50],          
-length ([30, 40, 50]) => 3
->
-
-< add (id 1) 2 => 3 | 
-id 1 => 1,
-add 1 2 => 3
->
-
-< add (add 2 3) (add 4 5) => 14 | add 5 9 => 14, add 4 5 => 9, add 2 3 => 5 >
-

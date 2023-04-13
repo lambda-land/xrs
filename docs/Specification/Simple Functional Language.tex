@@ -1,9 +1,10 @@
 \documentclass{article}
 \usepackage{amsmath,amssymb}
 \usepackage{proof}
+\usepackage{adjustbox}
 \usepackage{stmaryrd}
 \usepackage[letterpaper,margin=1cm]{geometry}
-\usepackage{quiver}
+%\usepackage{quiver}
 
 \title{Specification and Rules for LANG}
 
@@ -545,33 +546,286 @@ $$
 $$
 which would include any explanation $D, \sigma[x \mapsto v_2] \vdash e \Rightarrow v$ might yield. Another thing to consider is to treat the explanation lists as sets, which removes the hassle of preventing duplicate judgments. It also gives us the sense that judgements should or should not be included in the final explanation and can be "thrown in". 
 \\
+
+
+We should instead use these rules:
+
+$$
+\infer[\textsc{XApp}_{3,1}]{
+	\xj{\envj{\rho}{e_1 \ e_2}{\closure{x}{e}{\sigma}}}{\noenvj{e_2'}{v_2},\Gamma,\Delta,\Sigma}
+}{
+	\xj{D, \rho  \vdash e_1 \Rightarrow \closure x e \sigma}{\Gamma}
+	&
+	\xj{D, \rho \vdash e_2 \Rightarrow v_2}{\Delta}
+	&
+	\xj{D, \sigma[x \mapsto v_2] \vdash e \Rightarrow v}{\Sigma}
+	&
+	D,\rho: e_1 \rightsquigarrow e_1'
+	&
+	D,\rho : e_2 \rightsquigarrow e_2' 
+}
+$$
+$$
+\infer[\textsc{XApp}_{3,2}]{
+	\langle D, \rho \vdash e_1 \ e_2 \Rightarrow v \ | \ e_1' \ v_2 \Rightarrow v, e_2' \Rightarrow v_2, \Gamma,\Delta,\Sigma\rangle
+}{
+	\xj{D, \rho  \vdash e_1 \Rightarrow \closure x e \sigma}{\Gamma}
+	&
+	\xj{D, \rho \vdash e_2 \Rightarrow v_2}{\Delta}
+	&
+	\xj{D, \sigma[x \mapsto v_2] \vdash e \Rightarrow v}{\Sigma}
+	&
+	D,\rho: e_1 \rightsquigarrow e_1'
+	&
+	D,\rho : e_2 \rightsquigarrow e_2' 
+}
+$$
+
+\\
+
+These two rules give us
+$$
+\xj{\envj{[]}{\codesf{add (4 + 5) (6 + 7)}}{\codesf {22}}}{\noenvj{\codesf{add (4 + 5) 13}}{\codesf{22}},\noenvj{\codesf{6 + 7}}{\codesf{13}},\noenvj{\codesf{4 + 5}}{\codesf{9}},\noenvj{\codesf{9 + 13}}{\codesf{22}}}$$
+which is much closer to what we want. Also,
+
+$$
+\infer[\textsc{XIfTrue}_3]{
+	\langle D, \rho \vdash \textsf{if } e_1 \ \textsf{then } e_2 \ \textsf{else } e_3 \Rightarrow v \ | \ e_1' \Rightarrow \textsf{True}, \Delta \rangle
+}{
+	D, \rho \vdash e_1 \Rightarrow \textsf{True}
+	&
+	\xj{D, \rho \vdash e_2 \Rightarrow v}{\Delta}
+	&
+	D, \rho : e_1 \rightsquigarrow e_1'
+}
+$$
+
+$$
+\infer[\textsc{XIfFalse}_3]{
+	\langle D, \rho \vdash \textsf{if } e_1 \ \textsf{then } e_2 \ \textsf{else } e_3 \Rightarrow v \ | \ e_1' \Rightarrow \textsf{False}, \Delta \rangle
+}{
+	D, \rho \vdash e_1 \Rightarrow \textsf{False}
+	&
+	\xj{D, \rho \vdash e_3 \Rightarrow v}{\Delta}
+	&
+	D, \rho : e_1 \rightsquigarrow e_1'
+}
+$$
+
+
+
+
+\pagebreak
+\begin{figure*}
+\begin{small}
+$$
+\infer[\textsc{XBinOp}_4]{
+    \langle D, \rho \vdash e_1 \binop e_2 \Rightarrow v \ | \ e_1' \binop e_2' \Rightarrow v,\Delta_1,\Delta_2 \rangle
+}{
+    \xj{D, \rho \vdash e_1 \Rightarrow v_1}{\Delta_1}
+    &
+    \xj{D, \rho \vdash e_2 \Rightarrow v_2}{\Delta_2}
+    &
+    \llbracket \binop \rrbracket(v_1, v_2) = v
+    &
+    D, \rho : e_1 \rightsquigarrow e_1'
+    &
+    D, \rho : e_2 \rightsquigarrow e_2'
+}
+$$
+
+$$
+\infer[\textsc{XApp}_{4,1}]{
+	\xj{\envj{\rho}{e_1 \ e_2}{v}}{\noenvj{e_2'}{v_2},\Gamma}
+}{
+	\xj{D, \rho  \vdash e_1 \Rightarrow \closure x e \sigma}{\Gamma}
+	&
+	D, \rho \vdash e_2 \Rightarrow v_2
+	&
+	D, \sigma[x \mapsto v_2] \vdash e \Rightarrow v
+	&
+	D,\rho : e_2 \rightsquigarrow e_2' 
+	&
+	v=\closure{z}{e_v}{\sigma_v}
+}
+$$
+
+$$
+\infer[\textsc{XApp}_{4,2}]{
+	\xj{\envj{\rho}{e_1 \ e_2}{v}}{\Gamma,\Sigma}
+}{
+	\xj{D, \rho  \vdash e_1 \Rightarrow \closure x e \sigma}{\Gamma}
+	&
+	\xj{D, \rho \vdash e_2 \Rightarrow v_2}{[\ ]}
+	&
+	\xj{D, \sigma[x \mapsto v_2] \vdash e \Rightarrow v}{\Sigma}
+}
+$$
+
+$$
+\infer[\textsc{XApp}_{4,3}]{
+	\langle D, \rho \vdash e_1 \ e_2 \Rightarrow v \ | \ e_1' \ v_2 \Rightarrow v, e_2' \Rightarrow v_2, \Gamma,\Delta\rangle
+}{
+	\xj{D, \rho  \vdash e_1 \Rightarrow \closure x e \sigma}{\Gamma;e' }
+	&
+	\xj{D, \rho \vdash e_2 \Rightarrow v_2}{\Delta}
+	&
+	D, \sigma[x \mapsto v_2] \vdash e \Rightarrow v
+	&
+	D,\rho: e_1 \rightsquigarrow e_1'
+	&
+	D,\rho : e_2 \rightsquigarrow e_2' 
+}
+$$
+
+$$
+\infer[\textsc{XIfTrue}_4]{
+	\langle D, \rho \vdash \textsf{if } e_1 \ \textsf{then } e_2 \ \textsf{else } e_3 \Rightarrow v \ | \ e_1' \Rightarrow \textsf{True}, \Delta \rangle
+}{
+	D, \rho \vdash e_1 \Rightarrow \textsf{True}
+	&
+	\xj{D, \rho \vdash e_2 \Rightarrow v}{\Delta}
+	&
+	D, \rho : e_1 \rightsquigarrow e_1'
+}
+$$
+
+$$
+\infer[\textsc{XIfFalse}_4]{
+	\langle D, \rho \vdash \textsf{if } e_1 \ \textsf{then } e_2 \ \textsf{else } e_3 \Rightarrow v \ | \ e_1' \Rightarrow \textsf{False}, \Delta \rangle
+}{
+	D, \rho \vdash e_1 \Rightarrow \textsf{False}
+	&
+	\xj{D, \rho \vdash e_3 \Rightarrow v}{\Delta}
+	&
+	D, \rho : e_1 \rightsquigarrow e_1'
+}
+$$
+\end{small}
+\end{figure*}
+\pagebreak
+
+\begin{figure*}
+\begin{small}
+$$
+\infer[\textsc{XBinOp}_5]{
+    \langle D, \rho \vdash e_1 \binop e_2 \Rightarrow v \ | \ e_1' \binop e_2' \Rightarrow v,\Delta_1,\Delta_2 \rangle
+}{
+    \xj{D, \rho \vdash e_1 \Rightarrow v_1}{\Delta_1}
+    &
+    \xj{D, \rho \vdash e_2 \Rightarrow v_2}{\Delta_2}
+    &
+    \llbracket \binop \rrbracket(v_1, v_2) = v
+    &
+    D, \rho : e_1 \rightsquigarrow e_1'
+    &
+    D, \rho : e_2 \rightsquigarrow e_2'
+}
+$$
+
+$$
+\infer[\textsc{XApp}_{5,1}]{
+	\xj{\envj{\rho}{e_1 \ e_2}{v}}{\noenvj{e_2'}{v_2},\Gamma}
+}{
+	\xj{D, \rho  \vdash e_1 \Rightarrow \closure x e \sigma}{\Gamma}
+	&
+	D, \rho \vdash e_2 \Rightarrow v_2
+	&
+	D, \sigma[x \mapsto v_2] \vdash e \Rightarrow v
+	&
+	D,\rho : e_2 \rightsquigarrow e_2' 
+	&
+	v=\closure{z}{e_v}{\sigma_v}
+}
+$$
+
+$$
+\infer[\textsc{XApp}_{5,2}]{
+	\xj{\envj{\rho}{e_1 \ e_2}{v}}{\Gamma,\Sigma}
+}{
+	\xj{D, \rho  \vdash e_1 \Rightarrow \closure x e \sigma}{\Gamma}
+	&
+	\xj{D, \rho \vdash e_2 \Rightarrow v_2}{[\ ]}
+	&
+	\xj{D, \sigma[x \mapsto v_2] \vdash e \Rightarrow v}{\Sigma}
+}
+$$
+
+$$
+\infer[\textsc{XApp}_{5,3}]{
+	\langle D, \rho \vdash e_1 \ e_2 \Rightarrow v \ | \ e_1' \ v_2 \Rightarrow v, e_2' \Rightarrow v_2, \Gamma,\Delta\rangle
+}{
+	\xj{D, \rho  \vdash e_1 \Rightarrow \closure x e \sigma}{\Gamma}
+	&
+	\xj{D, \rho \vdash e_2 \Rightarrow v_2}{\Delta}
+	&
+	D, \sigma[x \mapsto v_2] \vdash e \Rightarrow v
+	&
+	D,\rho: e_1 \rightsquigarrow e_1'
+	&
+	D,\rho : e_2 \rightsquigarrow e_2' 
+}
+$$
+
+$$
+\xj{D, \rho  \vdash e \Rightarrow v}{\Gamma;e' }
+$$
+
+$$
+\infer[\textsc{XIfTrue}_5]{
+	\langle D, \rho \vdash \textsf{if } e_1 \ \textsf{then } e_2 \ \textsf{else } e_3 \Rightarrow v \ | \ e_1' \Rightarrow \textsf{True}, \Delta \rangle
+}{
+	D, \rho \vdash e_1 \Rightarrow \textsf{True}
+	&
+	\xj{D, \rho \vdash e_2 \Rightarrow v}{\Delta}
+	&
+	D, \rho : e_1 \rightsquigarrow e_1'
+}
+$$
+
+$$
+\infer[\textsc{XIfFalse}_5]{
+	\langle D, \rho \vdash \textsf{if } e_1 \ \textsf{then } e_2 \ \textsf{else } e_3 \Rightarrow v \ | \ e_1' \Rightarrow \textsf{False}, \Delta \rangle
+}{
+	D, \rho \vdash e_1 \Rightarrow \textsf{False}
+	&
+	\xj{D, \rho \vdash e_3 \Rightarrow v}{\Delta}
+	&
+	D, \rho : e_1 \rightsquigarrow e_1'
+}
+$$
+\end{small}
+\end{figure*}
+
+
 \pagebreak
 \\
 
 % https://q.uiver.app/?q=WzAsOSxbMiwyLCJcXHRleHR0dHtFdmFsSn0iXSxbNCwyLCJcXHRleHR0dHtQcm9vZiBFdmFsSn0iXSxbNCw0LCJcXHRleHR0dHtbWEV2YWxKXX0iXSxbMiwwLCJcXHRleHR0dHtFdmFsSn0iXSxbNCwwLCJcXHRleHR0dHtbRXZhbEpdfSJdLFs1LDYsIlxcdGV4dHR0e1Byb29mIFhUYWd9Il0sWzAsNiwiXFx0ZXh0dHR7WFRhZ30iXSxbMCwyLCJcXHRleHR0dHtFdmFsSn0iXSxbNCw4LCJcXHRleHR0dHtGaW5hbFh9Il0sWzAsMSwiXFx0ZXh0dHR7cHJvdmV9IiwxXSxbMSwyLCJcXHRleHR0dHtmaW5kRXhwfSIsMV0sWzAsMiwiIiwyLHsibGFiZWxfcG9zaXRpb24iOjEwLCJzdHlsZSI6eyJib2R5Ijp7Im5hbWUiOiJkYXNoZWQifX19XSxbMSw1LCIgIiwwLHsiY3VydmUiOi01fV0sWzMsNCwiXFx0ZXh0dHR7cHJlbWlzZXN9IiwxXSxbNyw2LCJcXHRleHR0dHt0YWdKdWRnZX0iLDEseyJsYWJlbF9wb3NpdGlvbiI6NDB9XSxbMCw1LCIgIiwwLHsiY3VydmUiOjUsInN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dLFs1LDgsIj8/P1xcdGV4dHNme21heWJlIGp1c3QgcmlnaHQgcHJvaiBvZiBjb25jbHVzaW9ufSIsMV0sWzAsOCwiICAgICBcXHRleHRzZnt3ZSB3YW50IHRoaXMgZnVuY3Rpb259IiwxLHsibGFiZWxfcG9zaXRpb24iOjcwLCJjdXJ2ZSI6NSwic3R5bGUiOnsiYm9keSI6eyJuYW1lIjoiZGFzaGVkIn19fV0sWzEzLDksIiAiLDIseyJzaG9ydGVuIjp7InNvdXJjZSI6MjAsInRhcmdldCI6MjB9fV0sWzExLDE0LCIgIiwyLHsiY3VydmUiOi0yLCJzaG9ydGVuIjp7InNvdXJjZSI6MTAsInRhcmdldCI6MTB9fV0sWzE0LDEyLCIgIiwwLHsiY3VydmUiOjUsInNob3J0ZW4iOnsic291cmNlIjoxMCwidGFyZ2V0IjoxMH19XV0=
-\[\begin{tikzcd}
-	&& {\texttt{EvalJ}} && {\texttt{[EvalJ]}} \\
-	\\
-	{\texttt{EvalJ}} && {\texttt{EvalJ}} && {\texttt{Proof EvalJ}} \\
-	\\
-	&&&& {\texttt{[XEvalJ]}} \\
-	\\
-	{\texttt{XTag}} &&&&& {\texttt{Proof XTag}} \\
-	\\
-	&&&& {\texttt{FinalX}}
-	\arrow[""{name=0, anchor=center, inner sep=0}, "{\texttt{prove}}"{description}, from=3-3, to=3-5]
-	\arrow["{\texttt{findExp}}"{description}, from=3-5, to=5-5]
-	\arrow[""{name=1, anchor=center, inner sep=0}, dashed, from=3-3, to=5-5]
-	\arrow[""{name=2, anchor=center, inner sep=0}, "{ }", curve={height=-30pt}, from=3-5, to=7-6]
-	\arrow[""{name=3, anchor=center, inner sep=0}, "{\texttt{premises}}"{description}, from=1-3, to=1-5]
-	\arrow[""{name=4, anchor=center, inner sep=0}, "{\texttt{tagJudge}}"{description, pos=0.4}, from=3-1, to=7-1]
-	\arrow["{ }", curve={height=30pt}, dashed, from=3-3, to=7-6]
-	\arrow["{???\textsf{maybe just right proj of conclusion}}"{description}, from=7-6, to=9-5]
-	\arrow["{     \textsf{we want this function}}"{description, pos=0.7}, curve={height=30pt}, dashed, from=3-3, to=9-5]
-	\arrow["{ }"', shorten <=9pt, shorten >=9pt, Rightarrow, from=3, to=0]
-	\arrow["{ }"', curve={height=-12pt}, shorten <=11pt, shorten >=11pt, Rightarrow, from=1, to=4]
-	\arrow["{ }", curve={height=30pt}, shorten <=22pt, shorten >=22pt, Rightarrow, from=4, to=2]
-\end{tikzcd}\]
+%
+%\[\begin{tikzcd}
+%	&& {\texttt{EvalJ}} && {\texttt{[EvalJ]}} \\
+%	\\
+%	{\texttt{EvalJ}} && {\texttt{EvalJ}} && {\texttt{Proof EvalJ}} \\
+%	\\
+%	&&&& {\texttt{[XEvalJ]}} \\
+%	\\
+%	{\texttt{XTag}} &&&&& {\texttt{Proof XTag}} \\
+%	\\
+%	&&&& {\texttt{FinalX}}
+%	\arrow[""{name=0, anchor=center, inner sep=0}, "{\texttt{prove}}"{description}, from=3-3, to=3-5]
+%	\arrow["{\texttt{findExp}}"{description}, from=3-5, to=5-5]
+%	\arrow[""{name=1, anchor=center, inner sep=0}, dashed, from=3-3, to=5-5]
+%	\arrow[""{name=2, anchor=center, inner sep=0}, "{ }", curve={height=-30pt}, from=3-5, to=7-6]
+%	\arrow[""{name=3, anchor=center, inner sep=0}, "{\texttt{premises}}"{description}, from=1-3, to=1-5]
+%	\arrow[""{name=4, anchor=center, inner sep=0}, "{\texttt{tagJudge}}"{description, pos=0.4}, from=3-1, to=7-1]
+%	\arrow["{ }", curve={height=30pt}, dashed, from=3-3, to=7-6]
+%	\arrow["{???\textsf{maybe just right proj of conclusion}}"{description}, from=7-6, to=9-5]
+%	\arrow["{     \textsf{we want this function}}"{description, pos=0.7}, curve={height=30pt}, dashed, from=3-3, to=9-5]
+%	\arrow["{ }"', shorten <=9pt, shorten >=9pt, Rightarrow, from=3, to=0]
+%	\arrow["{ }"', curve={height=-12pt}, shorten <=11pt, shorten >=11pt, Rightarrow, from=1, to=4]
+%	\arrow["{ }", curve={height=30pt}, shorten <=22pt, shorten >=22pt, Rightarrow, from=4, to=2]
+%\end{tikzcd}\]
 
 
 

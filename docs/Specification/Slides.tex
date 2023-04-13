@@ -1,0 +1,121 @@
+\documentclass{article}
+\usepackage{amssymb,amsmath}
+\usepackage{quiver}
+\begin{document}
+
+\[\begin{tikzcd}
+	&& {\texttt{EvalJ}} && {\texttt{[[EvalJ]]}} \\
+	\\
+	{\texttt{EvalJ}} && {\texttt{EvalJ}} && {\texttt{Proof EvalJ}} \\
+	\\
+	&&&& {\texttt{[XEvalJ]}} \\
+	\\
+	{\texttt{XTag}} &&&&& {\texttt{Proof XTag}} \\
+	\\
+	&&&& {\texttt{FinalX}}
+	\arrow[""{name=0, anchor=center, inner sep=0}, "{\texttt{prove}}"{description}, from=3-3, to=3-5]
+	\arrow["{\texttt{findExp}}"{description}, from=3-5, to=5-5]
+	\arrow[""{name=1, anchor=center, inner sep=0}, dashed, from=3-3, to=5-5]
+	\arrow[""{name=2, anchor=center, inner sep=0}, "{ }", curve={height=-30pt}, from=3-5, to=7-6]
+	\arrow[""{name=3, anchor=center, inner sep=0}, "{\texttt{premises}}"{description}, from=1-3, to=1-5]
+	\arrow[""{name=4, anchor=center, inner sep=0}, "{\texttt{tagJudge}}"{description, pos=0.4}, from=3-1, to=7-1]
+	\arrow["{ }", curve={height=30pt}, dashed, from=3-3, to=7-6]
+	\arrow["{\texttt{???}}"{description}, from=7-6, to=9-5]
+	\arrow["{     \textsf{we want this function}}"{description, pos=0.7}, curve={height=30pt}, dashed, from=3-3, to=9-5]
+	\arrow["{ }"', shorten <=9pt, shorten >=9pt, Rightarrow, from=3, to=0]
+	\arrow["{ }"', curve={height=-12pt}, shorten <=11pt, shorten >=11pt, Rightarrow, from=1, to=4]
+	\arrow["{ }", curve={height=30pt}, shorten <=22pt, shorten >=22pt, Rightarrow, from=4, to=2]
+\end{tikzcd}\]
+\pagebreak
+
+\[\begin{tikzcd}
+	{\texttt{EvalJ}} && {\texttt{[[EvalJ]]}}
+	\arrow["{\texttt{premises}}"{description}, from=1-1, to=1-3]
+\end{tikzcd}\]
+\pagebreak
+\[\begin{tikzcd}
+	{\texttt{EvalJ}} && {\texttt{[[EvalJ]]}} \\
+	\\
+	{\texttt{EvalJ}} && {\texttt{Proof EvalJ}}
+	\arrow[""{name=0, anchor=center, inner sep=0}, "{\texttt{premises}}"{description}, from=1-1, to=1-3]
+	\arrow[""{name=1, anchor=center, inner sep=0}, "{\texttt{prove}}"{description}, from=3-1, to=3-3]
+	\arrow["{ }"', shorten <=9pt, shorten >=9pt, Rightarrow, from=0, to=1]
+\end{tikzcd}\]
+\pagebreak
+\[\begin{tikzcd}
+	{\texttt{EvalJ}} && {\texttt{[[EvalJ]]}} \\
+	\\
+	{\texttt{EvalJ}} && {\texttt{Proof EvalJ}} \\
+	\\
+	&& {\texttt{[XEvalJ]}}
+	\arrow[""{name=0, anchor=center, inner sep=0}, "{\texttt{premises}}"{description}, from=1-1, to=1-3]
+	\arrow[""{name=1, anchor=center, inner sep=0}, "{\texttt{prove}}"{description}, from=3-1, to=3-3]
+	\arrow["{\texttt{findExp}}"{description}, from=3-3, to=5-3]
+	\arrow[dashed, from=3-1, to=5-3]
+	\arrow["{ }"', shorten <=9pt, shorten >=9pt, Rightarrow, from=0, to=1]
+\end{tikzcd}\]
+\pagebreak
+\[\begin{tikzcd}
+	&& {\texttt{EvalJ}} && {\texttt{[[EvalJ]]}} \\
+	\\
+	{\texttt{EvalJ}} && {\texttt{EvalJ}} && {\texttt{Proof EvalJ}} \\
+	\\
+	&&&& {\texttt{[XEvalJ]}} \\
+	\\
+	{\texttt{XTag}}
+	\arrow[""{name=0, anchor=center, inner sep=0}, "{\texttt{premises}}"{description}, from=1-3, to=1-5]
+	\arrow[""{name=1, anchor=center, inner sep=0}, "{\texttt{prove}}"{description}, from=3-3, to=3-5]
+	\arrow["{\texttt{findExp}}"{description}, from=3-5, to=5-5]
+	\arrow[""{name=2, anchor=center, inner sep=0}, dashed, from=3-3, to=5-5]
+	\arrow[""{name=3, anchor=center, inner sep=0}, "{\texttt{tagJudge}}"{description, pos=0.4}, from=3-1, to=7-1]
+	\arrow["{ }"', shorten <=9pt, shorten >=9pt, Rightarrow, from=0, to=1]
+	\arrow["{ }"', curve={height=-12pt}, shorten <=11pt, shorten >=11pt, Rightarrow, from=2, to=3]
+\end{tikzcd}\]
+\pagebreak
+\[\begin{tikzcd}
+	&& {\texttt{EvalJ}} && {\texttt{[[EvalJ]]}} \\
+	\\
+	{\texttt{EvalJ}} && {\texttt{EvalJ}} && {\texttt{Proof EvalJ}} \\
+	\\
+	&&&& {\texttt{[XEvalJ]}} \\
+	\\
+	{\texttt{XTag}} &&&&& {\texttt{Proof XTag}}
+	\arrow[""{name=0, anchor=center, inner sep=0}, "{\texttt{premises}}"{description}, from=1-3, to=1-5]
+	\arrow[""{name=1, anchor=center, inner sep=0}, "{\texttt{prove}}"{description}, from=3-3, to=3-5]
+	\arrow["{\texttt{findExp}}"{description}, from=3-5, to=5-5]
+	\arrow[""{name=2, anchor=center, inner sep=0}, dashed, from=3-3, to=5-5]
+	\arrow[""{name=3, anchor=center, inner sep=0}, "{\texttt{tagJudge}}"{description, pos=0.4}, from=3-1, to=7-1]
+	\arrow[""{name=4, anchor=center, inner sep=0}, "{ }", curve={height=-30pt}, from=3-5, to=7-6]
+	\arrow["{ }", curve={height=30pt}, dashed, from=3-3, to=7-6]
+	\arrow["{ }"', shorten <=9pt, shorten >=9pt, Rightarrow, from=0, to=1]
+	\arrow["{ }"', curve={height=-12pt}, shorten <=11pt, shorten >=11pt, Rightarrow, from=2, to=3]
+	\arrow["{ }", curve={height=30pt}, shorten <=22pt, shorten >=22pt, Rightarrow, from=3, to=4]
+\end{tikzcd}\]
+\pagebreak
+\[\begin{tikzcd}
+	&& {\texttt{EvalJ}} && {\texttt{[[EvalJ]]}} \\
+	\\
+	{\texttt{EvalJ}} && {\texttt{EvalJ}} && {\texttt{Proof EvalJ}} \\
+	\\
+	&&&& {\texttt{[XEvalJ]}} \\
+	\\
+	{\texttt{XTag}} &&&&& {\texttt{Proof XTag}} \\
+	\\
+	&&&& {\texttt{FinalX}}
+	\arrow[""{name=0, anchor=center, inner sep=0}, "{\texttt{premises}}"{description}, from=1-3, to=1-5]
+	\arrow[""{name=1, anchor=center, inner sep=0}, "{\texttt{prove}}"{description}, from=3-3, to=3-5]
+	\arrow["{\texttt{findExp}}"{description}, from=3-5, to=5-5]
+	\arrow[""{name=2, anchor=center, inner sep=0}, dashed, from=3-3, to=5-5]
+	\arrow[""{name=3, anchor=center, inner sep=0}, "{\texttt{tagJudge}}"{description, pos=0.4}, from=3-1, to=7-1]
+	\arrow[""{name=4, anchor=center, inner sep=0}, "{ }", curve={height=-30pt}, from=3-5, to=7-6]
+	\arrow["{ }", curve={height=30pt}, dashed, from=3-3, to=7-6]
+	\arrow["{???}"{description}, from=7-6, to=9-5]
+	\arrow["{     \textsf{we want this function}}"{description, pos=0.7}, curve={height=30pt}, dashed, from=3-3, to=9-5]
+	\arrow["{ }"', shorten <=9pt, shorten >=9pt, Rightarrow, from=0, to=1]
+	\arrow["{ }"', curve={height=-12pt}, shorten <=11pt, shorten >=11pt, Rightarrow, from=2, to=3]
+	\arrow["{ }", curve={height=30pt}, shorten <=22pt, shorten >=22pt, Rightarrow, from=3, to=4]
+\end{tikzcd}\]
+
+
+
+\end{document}
