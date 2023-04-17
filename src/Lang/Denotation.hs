@@ -17,10 +17,10 @@ eval d rho e = case e of
          | otherwise -> error $ "unbound variable: " ++ v
   ELet v e1 e2 -> eval d ((v, eval d rho e1):rho) e2
   EOp e1 o e2  -> runBinOp o (eval d rho e1) (eval d rho e2)
-  ELam v e     -> VClosure v e rho -- TODO: trim the closure environment?
+  ELam v e     -> VClo v e rho -- TODO: trim the closure environment?
   EApp _ _ | isBuildInApp e -> runBuildInApp d rho e
   EApp e1 e2   -> case (eval d rho e1, eval d rho e2) of
-                    (VClosure v e env, x) -> eval d ((v, x):env) e
+                    (VClo v e env, x) -> eval d ((v, x):env) e
                     (_, _) -> error "cannot apply a non-closure value"
   EIf e1 e2 e3 -> case eval d rho e1 of
                     VBool b -> eval d rho (if b then e2 else e3)

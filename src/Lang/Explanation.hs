@@ -196,7 +196,7 @@ findExp (Node (EvalJ d rho e v) ps) = case (e,v, map conclusion ps) of
   ---------------------------------------------------------------------XLetFun
     < D, rho |- let x = e1 in e2 => v | e2' => v >
 --}
-  (ELet x e1 e2, v, [EvalJ _ _ e1p (VClosure _ _ _), EvalJ _ rho' e2p v2]) -> [XEvalJ e2' v]
+  (ELet x e1 e2, v, [EvalJ _ _ e1p (VClo _ _ _), EvalJ _ rho' e2p v2]) -> [XEvalJ e2' v]
     where e1' = fillEnv rho e1
           e2' = fillEnv rho' e2
 {--
@@ -215,22 +215,22 @@ findExp (Node (EvalJ d rho e v) ps) = case (e,v, map conclusion ps) of
     < D, rho |- e1 e2 => v | e1' v2 => v, e2' => v2, Delta, Sigma >
 --}
 {--
-  (EApp e1 e2, v, [EvalJ _ _ e1p (VClosure _ _ _), j@(EvalJ _ _ e2p v2), j'@(EvalJ _ _ _ _)]) -> [XEvalJ (EApp e1' (embed v2)) v, XEvalJ e2' v2] ++ delta ++ sigma
+  (EApp e1 e2, v, [EvalJ _ _ e1p (VClo _ _ _), j@(EvalJ _ _ e2p v2), j'@(EvalJ _ _ _ _)]) -> [XEvalJ (EApp e1' (embed v2)) v, XEvalJ e2' v2] ++ delta ++ sigma
     where e1' = fillEnv rho e1
           e2' = fillEnv rho e2
           delta = findExp (head $ filter ((==j) . conclusion) ps)
           sigma = -- findExp (ps !! 2)
 --}
-  (EApp e1 e2, VClosure _ _ _, [EvalJ _ _ e1p (VClosure _ _ _), EvalJ _ _ e2p v2, EvalJ _ _ _ _]) -> [XEvalJ e2' v2] ++ greeks
+  (EApp e1 e2, VClo _ _ _, [EvalJ _ _ e1p (VClo _ _ _), EvalJ _ _ e2p v2, EvalJ _ _ _ _]) -> [XEvalJ e2' v2] ++ greeks
     where e1' = fillEnv rho e1
           e2' = fillEnv rho e2
           greeks =  concatMap findExp (take 1 ps) -- findExp (ps !! 0) -- [] -- findExp (ps !! 1) -- concatMap findExp ps
-  (EApp e1 e2, v, [EvalJ _ _ e1p (VClosure _ _ _), EvalJ _ _ e2p v2, EvalJ _ _ _ _]) | [] <- findExp (ps !! 1) -> greeks
+  (EApp e1 e2, v, [EvalJ _ _ e1p (VClo _ _ _), EvalJ _ _ e2p v2, EvalJ _ _ _ _]) | [] <- findExp (ps !! 1) -> greeks
     where e1' = fillEnv rho e1
           e2' = fillEnv rho e2
           greeks = concatMap findExp ps 
 
-  (EApp e1 e2, v, [EvalJ _ _ e1p (VClosure _ _ _), EvalJ _ _ e2p v2, EvalJ _ _ _ _]) -> [XEvalJ (EApp e1' (embed v2)) v, XEvalJ e2' v2] ++ greeks
+  (EApp e1 e2, v, [EvalJ _ _ e1p (VClo _ _ _), EvalJ _ _ e2p v2, EvalJ _ _ _ _]) -> [XEvalJ (EApp e1' (embed v2)) v, XEvalJ e2' v2] ++ greeks
     where e1' = fillEnv rho e1
           e2' = fillEnv rho e2
           greeks = concatMap findExp (take 2 ps)
@@ -277,7 +277,7 @@ findExp (Node (EvalJ d rho e v) ps) = case (e,v, map conclusion ps) of
 -- rho |- if e1 then e2 else e3 -------------> < D, rho |- if e1 then e2 else e3 => v | e1' => True, e3' => v >
 
 
-  (e,VClosure _ _ _,_) -> []
+  (e,VClo _ _ _,_) -> []
 
   -- (e,v,_) -> [XEvalJ e v]
   _                   -> error "findExp: literal mismatch"
@@ -444,7 +444,7 @@ evaluationExamples = map (conclusion . tagProof . traceExample) examples
                    ]
 
 
-
+{--
 
 < length ([10, 20, 30, 40, 50]) => 5 | ([10, 20, 30, 40, 50] == []) => False, (1 + length (tail ([10, 20, 30, 40, 50]))) => 5, length ([20, 30, 40, 50]) => 4, tail ([10, 20, 30, 40, 50]) => [20, 30, 40, 50] >
 < length (tail ([10, 20, 30, 40, 50])) => 4 | length ([20, 30, 40, 50]) => 4, tail ([10, 20, 30, 40, 50]) => [20, 30, 40, 50] >
@@ -517,3 +517,5 @@ add 1 2 => 3
 
 < add (add 2 3) (add 4 5) => 14 | add 5 9 => 14, add 4 5 => 9, add 2 3 => 5 >
 
+
+--}

@@ -1,3 +1,5 @@
+{-# LANGUAGE PatternSynonyms #-}
+
 module Lang.Lang where
 
 import Display.Latex
@@ -28,13 +30,19 @@ data BinOp = Add | Mul | Sub | Div | Eq | LEq | Lt | Or | And | Gt | GEq | NEq |
 
 
 
-data Val 
+data Val
   = VInt Int
   | VBool Bool
   | VStr String
   | VChar Char
   | VList [Val]
-  | VClosure Var Expr LocalEnv
+  | VClosure Var Expr LocalEnv ValueName
+
+type ValueName = [Expr] -- This will end up being nonempty
+
+pattern VClo :: Var -> Expr -> LocalEnv -> Val
+pattern VClo v e l <- VClosure v e l _ where
+  VClo v e l = VClosure v e l []
 
 type LocalEnv = [(Var, Val)]
 type GlobalEnv = [(Var, Expr)]
@@ -113,7 +121,7 @@ fillEnv :: LocalEnv -> Expr -> Expr
 fillEnv env e = foldl (.) id substs e -- foldl (\ v e' -> (/~>) v e') e env'
   where substs = [v /~> (embed e') | v <- map fst env', let (Just e') = lookup v env']
         env' = filter (not . isClosure . snd) env
-        isClosure (VClosure _ _ _) = True
+        isClosure (VClo _ _ _) = True
         isClosure _                = False
 
 -- fillEnv env 
@@ -127,13 +135,13 @@ embed (VBool b) = EBool b
 embed (VStr s)  = EStr s
 embed (VChar c) = EChar c
 embed (VList vs) = EList (map embed vs)
-embed (VClosure _ _ _) = error "cannot embed a closure"
+embed (VClo _ _ _) = error "cannot embed a closure"
 
 
 {--   Instances   --}
 
 instance Eq Val where
-  (VClosure x e env) == (VClosure x' e' env') = x == x && e == e && env == env'
+  (VClo x e env) == (VClo x' e' env') = x == x && e == e && env == env'
   a == b = (compare a b == EQ)
 
 instance Ord Val where
@@ -142,7 +150,7 @@ instance Ord Val where
   compare (VStr a) (VStr b)   = compare a b
   compare (VList a) (VList b) = compare a b
 
-  compare (VClosure _ _ _) (VClosure _ _ _)
+  compare (VClo _ _ _) (VClo _ _ _)
                               = error "cannot compare closures"
   compare _ _                 = error "cannot compare values of different types"
 
@@ -188,7 +196,7 @@ instance Show Val where
   show (VStr s)  = show s
   show (VChar c) = show c
   show (VList vs) = "[" ++ intercalate ", " (map show vs) ++ "]"
-  show (VClosure x e _) = "(closure " ++ x ++ " -> " ++ show e ++ ")"
+  show (VClo x e _) = "(closure " ++ x ++ " -> " ++ show e ++ ")"
 
 
 instance Latex Expr where
@@ -220,4 +228,4 @@ instance Latex Val where
   latex (VStr s)  = show s
   latex (VChar c) = show c
   latex (VList vs) = "[" ++ intercalate ", " (map latex vs) ++ "]"
-  latex (VClosure x e _) = "(closure " ++ x ++ " -> " ++ latex e ++ ")"
+  latex (VClo x e _) = "(closure " ++ x ++ " -> " ++ latex e ++ ")"

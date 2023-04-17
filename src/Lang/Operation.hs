@@ -58,7 +58,7 @@ instance Explain EvalJ where
   -----------------------------------------------Abs
   D, rho |- \x -> e => (closure x -> e, rho)
 --}
-  premises (EvalJ d rho (ELam x e) (VClosure x' e' rho')) | x == x' && e == e' && rho == rho' = [[]]
+  premises (EvalJ d rho (ELam x e) (VClo x' e' rho')) | x == x' && e == e' && rho == rho' = [[]]
 
 {--
   D, rho |- ei => vi    f(e1,...,en)    arity(f) = n
@@ -74,9 +74,9 @@ instance Explain EvalJ where
   ---------------------------------------------------------------------------------------------------App
   D, rho |- e1 e2 => v
 --}
-  premises (EvalJ d rho (EApp e1 e2) v) | VClosure x e' rho' <- eval d rho e1,
+  premises (EvalJ d rho (EApp e1 e2) v) | VClo x e' rho' <- eval d rho e1,
                                           v2 <- eval d rho e2
-    = [[EvalJ d rho e1 (VClosure x e' rho'), EvalJ d rho e2 v2, EvalJ d ((x,v2):rho') e' v]]
+    = [[EvalJ d rho e1 (VClo x e' rho'), EvalJ d rho e2 v2, EvalJ d ((x,v2):rho') e' v]]
 
 {--
   D, rho |- e1 => v'     D, rho[x |-> v'] |- e2 => v
