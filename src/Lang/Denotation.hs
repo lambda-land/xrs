@@ -13,21 +13,31 @@ eval d rho e = case e of
   EStr s  -> VStr s
   EChar c -> VChar c
   EVar v | Just val <- lookup v rho -> val
-         | Just e'  <- lookup v d -> eval d [] e'
+         | Just e'  <- lookup v d -> case eval d [] e' of
+                                       VClosure z e rho ns -> VClosure z e rho (EVar v:ns)
+                                       v -> v
          | otherwise -> error $ "unbound variable: " ++ v
   ELet v e1 e2 -> eval d ((v, eval d rho e1):rho) e2
   EOp e1 o e2  -> runBinOp o (eval d rho e1) (eval d rho e2)
-  ELam v e     -> VClo v e rho -- TODO: trim the closure environment?
+  ELam v e'    -> VClosure v e' rho [e]                                 -- TODO: trim the closure environment?
   EApp _ _ | isBuildInApp e -> runBuildInApp d rho e
-  EApp e1 e2   -> case (eval d rho e1, eval d rho e2) of
-                    (VClo v e env, x) -> eval d ((v, x):env) e
-                    (_, _) -> error "cannot apply a non-closure value"
+  EApp e1 e2   -> apply d rho e1 e2
   EIf e1 e2 e3 -> case eval d rho e1 of
                     VBool b -> eval d rho (if b then e2 else e3)
                     _ -> error "condition must be a boolean"
   EList es     -> VList (map (eval d rho) es)
 
-
+apply :: GlobalEnv -> LocalEnv -> Expr -> Expr -> Val
+apply d rho e1 e2 | let VClosure z e rho' (n1:_) = eval d rho e1 =
+                    let v2 = eval d rho e2
+                        v3 = eval d ((z, v2):rho') e in
+                    case (v2, v3) of
+                      -- app_closure_1: result is a closure, argument is a closure
+                      (VClosure _ _ _ ~(n2:_), VClosure y e' rho'' ns) -> VClosure y e' rho'' (EApp n1 n2:ns)
+                      -- app_closure_2: result is a closure, argument is not a closure
+                      (_,                      VClosure y e' rho'' ns) -> VClosure y e' rho'' (EApp n1 e2:ns)
+                      -- app_closure_3: result is not a closure
+                      (_, _) -> v3       
 
 runBinOp :: BinOp -> Val -> Val -> Val
 runBinOp op = case op of

@@ -38,6 +38,16 @@ instance Explain EvalJ where
   premises (EvalJ d rho (EVar x) v) | (x,v) `elem` rho = [[]]
 
 {--
+  (x,e) in D     D, [] |- e => (closure z -> e', rho', ns)
+  -----------------------------------------------------------GlobalVarClosure
+  D, rho |- x => (closure z -> e', rho', x:ns)
+--}
+  premises j@(EvalJ d rho (EVar f) v) | Just e <- lookup f d = [[EvalJ d [] e (VClosure z e' rho ns)]]
+    where VClosure z e' rho' ns = case v of
+                                        VClosure z e' rho' (_:ns) -> VClosure z e' rho' ns
+                                        _ -> error (show j)
+
+{--
   (x,e) in D     D, [] |- e => v
   -----------------------------------GlobalVar
   D, rho |- x => v
@@ -69,14 +79,39 @@ instance Explain EvalJ where
     = [[EvalJ d rho ei vi | ei <- es, let vi = eval d rho ei]]
     where (EVar f, es) = flattenApp e
 
+
+{--
+  D, rho |- e1 => (closure z -> e, rho', n1:_)
+  D, rho |- e2 => (closure _ -> _, _, n2:_) = v2
+  D, rho'[z |-> v2] |- e => (closure y -> e', rho'', ns)
+  -----------------------------------------------------------AppClosure1
+  D, rho |- e1 e2 => (closure y -> e', rho'', (n1 n2):ns)
+--}
+  premises (EvalJ d rho (EApp e1 e2) v) | v1@(VClosure z e rho' ~(n1:_)) <- eval d rho e1,
+                                          v2@(VClosure _ _ _ ~(n2:_)) <- eval d rho e2,
+                                          v'@(VClosure y e' rho'' ns) <- eval d ((z,v2):rho') e
+    = [[EvalJ d rho e1 v1, EvalJ d rho e2 v2, EvalJ d ((z,v2):rho') e (VClosure y e' rho'' ns)]]
+
+{--
+  D, rho |- e1 => (closure z -> e, rho', n1:_)
+  D, rho |- e2 => v2 =/= (closure _ -> _, _, _)
+  D, rho'[z |-> v2] |- e => (closure y -> e', rho'', ns)
+  -----------------------------------------------------------AppClosure2
+  D, rho |- e1 e2 => (closure y -> e', rho'', (n1 e2):ns)
+--}
+  premises (EvalJ d rho (EApp e1 e2) v) | v1@(VClosure z e rho' ~(n1:_)) <- eval d rho e1,
+                                          v2 <- eval d rho e2,
+                                          v'@(VClosure y e' rho'' ns) <- eval d ((z,v2):rho') e
+    = [[EvalJ d rho e1 v1, EvalJ d rho e2 v2, EvalJ d ((z,v2):rho') e (VClosure y e' rho'' ns)]]
+
 {--
   D, rho |- e1 => (closure x -> e',rho')     D, rho |- e2 => v2      D, rho'[x |-> v2] |- e' => v
   ---------------------------------------------------------------------------------------------------App
   D, rho |- e1 e2 => v
 --}
-  premises (EvalJ d rho (EApp e1 e2) v) | VClo x e' rho' <- eval d rho e1,
+  premises (EvalJ d rho (EApp e1 e2) v) | VClosure x e' rho' ns <- eval d rho e1,
                                           v2 <- eval d rho e2
-    = [[EvalJ d rho e1 (VClo x e' rho'), EvalJ d rho e2 v2, EvalJ d ((x,v2):rho') e' v]]
+    = [[EvalJ d rho e1 (VClosure x e' rho' ns), EvalJ d rho e2 v2, EvalJ d ((x,v2):rho') e' v]]
 
 {--
   D, rho |- e1 => v'     D, rho[x |-> v'] |- e2 => v
