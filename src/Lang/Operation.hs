@@ -42,7 +42,7 @@ instance Explain EvalJ where
   -----------------------------------------------------------GlobalVarClosure
   D, rho |- x => (closure z -> e', rho', x:ns)
 --}
-  premises j@(EvalJ d rho (EVar f) v) | Just e <- lookup f d = [[EvalJ d [] e (VClosure z e' rho ns)]]
+  premises j@(EvalJ d rho (EVar f) v) | Just e <- lookup f d = [[]]-- [[EvalJ d [] e (VClosure z e' rho ns)]]
     where VClosure z e' rho' ns = case v of
                                         VClosure z e' rho' (_:ns) -> VClosure z e' rho' ns
                                         _ -> error (show j)
@@ -105,6 +105,14 @@ instance Explain EvalJ where
     = [[EvalJ d rho e1 v1, EvalJ d rho e2 v2, EvalJ d ((z,v2):rho') e (VClosure y e' rho'' ns)]]
 
 {--
+  D, rho |- e1 => (closure z -> e, rho', _)
+  D, rho |- e2 => v2
+  D, rho'[z |-> v2] |- e => v3
+  v3 =/= (closure _ -> _, _, _)
+  -----------------------------------------------------------AppNoClosure
+  D, rho |- e1 e2 => v3
+
+
   D, rho |- e1 => (closure x -> e',rho')     D, rho |- e2 => v2      D, rho'[x |-> v2] |- e' => v
   ---------------------------------------------------------------------------------------------------App
   D, rho |- e1 e2 => v
@@ -112,6 +120,15 @@ instance Explain EvalJ where
   premises (EvalJ d rho (EApp e1 e2) v) | VClosure x e' rho' ns <- eval d rho e1,
                                           v2 <- eval d rho e2
     = [[EvalJ d rho e1 (VClosure x e' rho' ns), EvalJ d rho e2 v2, EvalJ d ((x,v2):rho') e' v]]
+
+{--
+  D, rho |- e1 => (closure z -> e, rho', ns)
+  D, rho'[z |- (closure z -> e, rho', x:ns)] |- e2 => v
+  -----------------------------------------------------------LetClosure
+  D, rho |- let x = e1 in e2 => v
+--}
+  premises (EvalJ d rho (ELet x e1 e2) v) | v1@(VClosure z e rho' ns) <- eval d rho e1
+    = [[EvalJ d rho e1 v1, EvalJ d ((z,VClosure z e rho' (EVar x:ns)):rho') e2 v]]
 
 {--
   D, rho |- e1 => v'     D, rho[x |-> v'] |- e2 => v
