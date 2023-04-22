@@ -42,7 +42,7 @@ instance Explain EvalJ where
   -----------------------------------------------------------GlobalVarClosure
   D, rho |- x => (closure z -> e', rho', x:ns)
 --}
-  premises j@(EvalJ d rho (EVar f) v) | Just e <- lookup f d = [[]]-- [[EvalJ d [] e (VClosure z e' rho ns)]]
+  premises j@(EvalJ d rho (EVar f) v) | Just e <- lookup f d = [[EvalJ d [] e (VClosure z e' rho ns)]]
     where VClosure z e' rho' ns = case v of
                                         VClosure z e' rho' (_:ns) -> VClosure z e' rho' ns
                                         _ -> error (show j)

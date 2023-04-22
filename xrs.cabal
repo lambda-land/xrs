@@ -71,6 +71,7 @@ library
         Lang.ASTConverter
         Lang.Evaluation
         Lang.Explanation
+        Lang.NamedExplanation
 
         -- MyLib,
         -- Lang,
