@@ -53,6 +53,14 @@ toList' (Node j ps) = j : concatMap toList' ps
 instance Functor Proof where
   fmap f (Node j ps) = Node (f j) $ map (fmap f) ps
 
+instance Applicative Proof where
+  pure j = Node j []
+  (<*>) (Node f fs) (Node a as) = Node (f a) (zipWith (<*>) fs as)
+
+instance Monad Proof where
+  return j = Node j []
+  (Node j ps) >>= f = Node j' (map (>>= f) ps) where Node j' _ = f j
+
 instance Foldable Proof where
   -- foldMap :: Monoid m => (a -> m) -> t a -> m
   foldMap f (Node j []) = f j <> mempty

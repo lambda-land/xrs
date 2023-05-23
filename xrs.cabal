@@ -74,6 +74,7 @@ library
         Lang.NamedExplanation
         Lang.Heuristic
         Lang.Classify
+        Lang.GenericC
 
         -- MyLib,
         -- Lang,

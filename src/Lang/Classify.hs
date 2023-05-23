@@ -413,7 +413,7 @@ instance (Classify (h1,h2) j (c1,c2), Classify h3 j c3) => Classify (h1,h2,h3) j
 
 
 
-{- chris newfile
+{- chris newfile  
 class Generic a => GenericClassify a where
   type Context = -- written through ghc generics
   -- this has a function which has a default impl written using ghc generics
