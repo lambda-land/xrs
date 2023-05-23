@@ -14,6 +14,11 @@ import Data.Maybe (fromJust)
 -- D, rho |- e => v
 data EvalJ = EvalJ GlobalEnv LocalEnv Expr Val deriving Eq
 
+fillEnvJ :: EvalJ -> EvalJ
+fillEnvJ (EvalJ d rho e v) = EvalJ d rho (fillEnv rho e) v
+
+exprMap :: (Expr -> Expr) -> EvalJ -> EvalJ
+exprMap f (EvalJ d rho e v) = EvalJ d rho (f e) v
 
 
 -- NOTE: DO NOT RUN CHECKS DURING premises!! (unless you need to).
@@ -173,8 +178,8 @@ instance Explain EvalJ where
 
 
 trace :: GlobalEnv -> Expr -> Proof EvalJ
-trace d e = fromJust $ prove (EvalJ d [] e v)
--- trace d e = suppose (EvalJ d [] e v)
+-- trace d e = fromJust $ prove (EvalJ d [] e v)
+trace d e = suppose (EvalJ d [] e v)
   where v = eval d [] e
 
 

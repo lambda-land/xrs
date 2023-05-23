@@ -72,6 +72,8 @@ library
         Lang.Evaluation
         Lang.Explanation
         Lang.NamedExplanation
+        Lang.Heuristic
+        Lang.Classify
 
         -- MyLib,
         -- Lang,

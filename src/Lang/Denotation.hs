@@ -62,6 +62,19 @@ runBinOp op = case op of
     append a b = error $ "only lists can be appended. " ++ show a ++ " ++ " ++ show b 
 
 
+runArithmetic :: Expr -> Expr
+runArithmetic e = case e of
+  EOp e1 op e2 -> case (runArithmetic e1, runArithmetic e2) of
+                    (EInt a, EInt b) -> embed (runBinOp op (VInt a) (VInt b))
+                    (a, b) -> EOp a op b
+  EIf e1 e2 e3 -> EIf (runArithmetic e1) (runArithmetic e2) (runArithmetic e3)
+  EApp e1 e2   -> EApp (runArithmetic e1) (runArithmetic e2)
+  ELet v e1 e2 -> ELet v (runArithmetic e1) (runArithmetic e2)
+  ELam v e'    -> ELam v (runArithmetic e')
+  EList es     -> EList (map runArithmetic es)
+  _            -> e
+
+
 type BuiltInFun = [Val] -> Val
 type Arity = Int
 

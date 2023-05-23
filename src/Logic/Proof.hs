@@ -45,6 +45,11 @@ toList :: Eq j => Proof j -> [j]
 toList p = concat $ takeWhile (/=[]) [getRow n p | n <- [0..countNodes p - 1]]
 
 
+toList' :: Proof a -> [a]
+toList' (Node j []) = [j]
+toList' (Node j ps) = j : concatMap toList' ps
+
+
 instance Functor Proof where
   fmap f (Node j ps) = Node (f j) $ map (fmap f) ps
 
@@ -103,7 +108,6 @@ prove' = fromJust . prove
 suppose :: Explain j => j -> Proof j
 suppose j = Node j (map suppose ps)
   where ps = case premises j of { [] -> []; (p:_) -> p }
-
 
 
 

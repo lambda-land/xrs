@@ -124,7 +124,21 @@ fillEnv env e = foldl (.) id substs e -- foldl (\ v e' -> (/~>) v e') e env'
         isClosure (VClo _ _ _) = True
         isClosure _                = False
 
+ 
+
 -- fillEnv env 
+
+
+
+
+containsApp :: Expr -> Bool
+containsApp (EApp _ _) = True
+containsApp (ELet _ e1 e2) = containsApp e1 || containsApp e2
+containsApp (EOp e1 _ e2) = containsApp e1 || containsApp e2
+containsApp (ELam _ e) = containsApp e
+containsApp (EIf e1 e2 e3) = containsApp e1 || containsApp e2 || containsApp e3
+containsApp (EList es) = any containsApp es
+containsApp _ = False
 
 
 
@@ -136,6 +150,8 @@ embed (VStr s)  = EStr s
 embed (VChar c) = EChar c
 embed (VList vs) = EList (map embed vs)
 embed (VClo _ _ _) = error "cannot embed a closure"
+
+
 
 
 {--   Instances   --}
