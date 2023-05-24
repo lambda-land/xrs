@@ -41,6 +41,13 @@ metaTest = [d|
   f (C1 y m) = score y * score m
   |]
 
+data J1 = ConsJ1 Int Int
 
+deriveContext ''Car ''J1
+
+z :: Q Exp
+z = zipn 3
+
+z' = $(zipn 3)
 -- main :: IO ()
 -- main = print (a :: MyData2)

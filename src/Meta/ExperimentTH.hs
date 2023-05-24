@@ -5,8 +5,11 @@
 
 module Meta.ExperimentTH where
 
+import Control.Applicative
 import Language.Haskell.TH
-import Control.Monad (unless)
+import Control.Monad (unless, replicateM)
+import Data.Proxy (Proxy)
+import Logic.Proof
 
 
 
@@ -140,8 +143,6 @@ getConstructorBody' ty = do
 deriveScore :: Name -> Q [Dec]
 deriveScore ty = do
   (conName,paramTypes) <- getConstructorBody ty
-    -- paramNames <- mapM (\pType -> newName ("arg_" ++ nameBase (mkName (show pType)))) paramTypes
-  -- paramNames <- mapM (\pType -> newName $ "arg_" ++ nameBase (mkName (show pType))) paramTypes
 
   paramNames <- mapM (\pType -> newName $ "arg_" ) paramTypes
   let params = zip paramNames paramTypes
@@ -149,15 +150,65 @@ deriveScore ty = do
       instance Score $(pure (ConT ty)) where
         score $(pure (ConP conName [] (map VarP paramNames ))) = $(foldl (\f (pn,pt) -> [| $f * ((score :: $(pure pt) -> Float) $(pure (VarE pn))) |]) [|1.0|] params)
     |]
-            -- score _ = (const undefined) $ $(foldl (\f (pn,pt) -> [| $f * ((score :: $(pure pt) -> Float) $(pure (VarE pn))) |]) [|1.0|] params)
 
-    -- $(pure (ConE conName))
 
-    -- [d|
-    --   instance A $(pure (ConT ty)) where
-    --     a = $(foldl (\f param -> [| $f (a :: $(pure param)) |])
-    --                 (pure (ConE conName))
-    --                 paramTypes)
-    -- |]
+-- deriveScore :: Name -> Q [Dec]
+-- deriveScore ty = do
+--   (conName,paramTypes) <- getConstructorBody ty
 
--- $(foldl (\f param -> [| $f (score :: $(pure param) -> Float) |]) (pure (ConE conName)) paramTypes)
+--   paramNames <- mapM (\pType -> newName $ "arg_" ) paramTypes
+--   let params = zip paramNames paramTypes
+--   [d|
+--       instance Score $(pure (ConT ty)) where
+--         score $(pure (ConP conName [] (map VarP paramNames ))) = $(foldl (\f (pn,pt) -> [| $f * ((score :: $(pure pt) -> Float) $(pure (VarE pn))) |]) [|1.0|] params)
+--     |]
+
+class Context c j where
+  -- Initial context for the root judgement
+  rootCtx :: Proxy j -> c
+  -- Compute the child contexts for a node in the proof tree
+  childContexts :: c -> Proof j -> [c]
+
+instance Context Int j where
+  rootCtx _ = 0
+  childContexts n (Node _ ps) = map (const (n+1)) ps
+
+
+deriveContext :: Name -> Name -> Q [Dec]
+deriveContext ctx j = do
+  (conName,paramTypes) <- getConstructorBody ctx
+  (conName',paramTypes') <- getConstructorBody j
+
+  paramNames <- mapM (\pType -> newName $ "arg_" ) paramTypes
+  let params = zip paramNames paramTypes
+  [d|
+      instance Context $(pure (ConT ctx)) $(pure (ConT j)) where
+        rootCtx $(pure (VarP $ mkName "pr")) = $(foldl (\f (pn,pt) -> [| $f (rootCtx $(pure $ VarE $ mkName "pr"))|]) (pure (ConE conName)) params)
+        childContexts $(pure (ConP conName [] (map VarP paramNames ))) $(pure (VarP $ mkName "p"))
+          = $(foldl (\f (pn,pt) -> [| $f (childContexts $(pure (VarE pn)) $(pure (VarE $ mkName "p"))) |]) (runQ [| $(zipn (length params)) $(pure $ ConE conName)|])  params) -- $(foldl (\f param -> [| $f (a :: $(pure param)) |]) (pure (ConE conName)) paramTypes)
+    |]
+
+{-
+instance Context Car J1 where
+  rootCtx _ = ConsCar 0 0
+  childContexts (ConsCar y m) j = 
+-}
+  -- [d|
+  --     instance Context $(pure (ConT ctx)) $(pure (ConT j)) where
+  --       rootCtx _ = $(pure (ConE conName'))
+  --       childContexts $(pure (ConP conName [] (map VarP paramNames ))) $(pure (VarP $ mkName "p"))
+  --         = [ $(foldl (\f (pn,pt) -> [| $f (childContexts $(pure (VarE pn)) $(pure (VarE $ mkName "p"))) |]) (pure (ConE conName)) params) ]-- $(foldl (\f param -> [| $f (a :: $(pure param)) |]) (pure (ConE conName)) paramTypes)
+  --   |]
+
+
+zipn n = do
+    vs <- replicateM n (newName "vs")
+    [| \f ->
+        $(lamE (map varP vs)
+            [| getZipList $
+                $(foldl
+                    (\a b -> [| $a <*> $b |])
+                    [| pure f |]
+                    (map (\v -> [| ZipList $(varE v) |]) vs))
+            |])
+     |]
