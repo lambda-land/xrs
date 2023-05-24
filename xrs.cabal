@@ -75,6 +75,9 @@ library
         Lang.Heuristic
         Lang.Classify
         Lang.GenericC
+        Lang.Classification
+        Meta.ExperimentTH
+        Meta.Experiment
 
         -- MyLib,
         -- Lang,
@@ -105,6 +108,7 @@ library
         mtl,
         array,
         process,
+        template-haskell,
 
     -- Directories containing source files.
     hs-source-dirs:
@@ -113,7 +117,8 @@ library
         src/Display,
         src/Lang,
         src/Lang/Parser,
-        src/Lang/Parser/Lang
+        src/Lang/Parser/Lang,
+        src/Meta
         -- src/Lang,
         -- src/Parser
 

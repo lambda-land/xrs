@@ -20,7 +20,7 @@ import Data.Proxy
 -- >>> 3 + 4
 -- 7
 
-
+{-
 
 data Proof j = Node j [Proof j]
 

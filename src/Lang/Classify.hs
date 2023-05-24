@@ -20,7 +20,7 @@ import GHC.Base (neChar)
 import Data.Bifunctor (first,bimap)
 
 import Lang.Evaluation (traceExample)
-import Lang.Denotation (runArithmetic)
+import Lang.Denotation (runArithmetic,isBuiltIn)
 
 
 class Context c j where
@@ -185,6 +185,7 @@ instance Show IsBaseCase where
 
 instance Classify IsBaseCase EvalJ () where
   classify () j@(EvalJ _ _ (EApp (EVar n) _) _) ps
+    | isBuiltIn n = BHC False
     | doesOccurAgain n (fmap snd (ps !! 2)) = BHC False
     -- builtin functions fail this test
     | length ps < 3 = error (show (j, map conclusion (fmap (fmap snd) ps)))
@@ -330,15 +331,20 @@ newtype CustomClassifyNT = CustomClassifyNT CustomClassify
 
 
 
-runExample :: IO ()
-runExample = do
-  let hjs = selectCustom' weightedCustomScore $ traceExample "fac 5"
+runExample :: String -> IO ()
+runExample es = do
+  let hjs = selectCustom' weightedCustomScore $ traceExample es
   let hjs' = map (bimap id fillEnvJ) hjs
-  -- mapM_ (putStrLn . ("    "++) . show) $ take 200 $ map snd $ hjs'
+  putStrLn "\n--- Unchanged Judgments ---\n"
+  mapM_ (putStrLn . ("    "++) . show) $ take 5 $ map snd $ hjs
   let hjs'' = map (bimap id (exprMap runArithmetic)) hjs'
-  mapM_ (putStrLn . ("    "++) . show) $ take 200 $  hjs''
+  putStrLn "\n--- Post Processed ---\n"
+  mapM_ (putStrLn . ("    "++) . show) $ take 5 $ map snd $ hjs''
 
 
+
+postProcessJ :: EvalJ -> EvalJ
+postProcessJ = exprMap runArithmetic . fillEnvJ
 
 
 
@@ -402,12 +408,12 @@ fth :: (a,b,c,d) -> d
 fth (_,_,_,d) = d
 
 
-unzipProof3 :: Proof ((h1, h2, h3), j) -> (Proof (h1, j), Proof (h2, j), Proof (h3, j))
-unzipProof3 ps = (fmap (first fst) ps, fmap (first snd) ps, )
+-- unzipProof3 :: Proof ((h1, h2, h3), j) -> (Proof (h1, j), Proof (h2, j), Proof (h3, j))
+-- unzipProof3 ps = (fmap (first fst) ps, fmap (first snd) ps, )
 
-instance (Classify (h1,h2) j (c1,c2), Classify h3 j c3) => Classify (h1,h2,h3) j (c1,c2,c3) where
-  classify (c1,c2,c3) j ps = (classify c1 j ps1, classify c2 j ps2, classify c3 j ps3)
-    where (ps1, ps2, ps3) = unzip3 $ map unzipProof ps
+-- instance (Classify (h1,h2) j (c1,c2), Classify h3 j c3) => Classify (h1,h2,h3) j (c1,c2,c3) where
+--   classify (c1,c2,c3) j ps = (classify c1 j ps1, classify c2 j ps2, classify c3 j ps3)
+--     where (ps1, ps2, ps3) = unzip3 $ map unzipProof ps
           
 
 
