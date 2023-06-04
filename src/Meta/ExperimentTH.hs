@@ -1,16 +1,20 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE TypeFamilies #-}
 
 
 module Meta.ExperimentTH where
 
 import Control.Applicative
 import Language.Haskell.TH
+import Language.Haskell.TH.Syntax
+
 import Control.Monad (unless, replicateM)
 import Data.Proxy (Proxy)
 import Logic.Proof
-
+import Data.Char (toLower)
+import Data.Bifunctor (bimap)
 
 
 {-                  BEGIN CRHIS CODE                 -}
@@ -134,6 +138,17 @@ getConstructorBody ty = do
     _                         -> fail "We don't support any fancy constructors"
 
 
+getRecordFields :: Name -> Q [(Name,Type)]
+getRecordFields ty = do
+  constructor <- getConstructor ty
+  case constructor of
+    RecC          name fields -> pure [(n, ty) | (n, _, ty) <- fields] -- for records we also have field names to ignore
+    NormalC       name fields -> do
+      names <- mapM (\_ -> newName (map toLower $ nameBase ty)) fields
+      pure [(n,ty) | (n,(_, ty)) <- zip names fields] -- ignore strictness/packedness metadata
+
+    _                         -> fail "We don't support any fancy constructors"
+
 getConstructorBody' :: Name -> Q [Dec]
 getConstructorBody' ty = do
   (name, types) <- getConstructorBody ty
@@ -172,6 +187,10 @@ class Context c j where
 instance Context Int j where
   rootCtx _ = 0
   childContexts n (Node _ ps) = map (const (n+1)) ps
+
+instance Context () j where
+  rootCtx _ = ()
+  childContexts () (Node _ ps) = map (const ()) ps
 
 
 deriveContext :: Name -> Name -> Q [Dec]
@@ -212,3 +231,33 @@ zipn n = do
                     (map (\v -> [| ZipList $(varE v) |]) vs))
             |])
      |]
+
+
+
+class Context k j => Classify c j k | c -> j k where
+  classify :: k -> j -> [Proof (c,j)] -> c
+
+
+
+deriveClassify :: Name -> Name -> Q [Dec]
+deriveClassify cn jn = do
+  -- reifyInstances ''Classify [ ConT ty ]
+  -- reifyInstances ''Context [ ConT ty ]
+  (cConName,cConTypes) <- getConstructorBody cn
+  fields <- getRecordFields cn
+  ctxFields <- mapM (\(n,t) -> newName  (nameBase n ++ "_CTX") >>= pure . (,t)) fields
+  fieldVars <- mapM (\(n,t) -> newName  (nameBase n) >>= pure . (,t)) ctxFields
+  let kName = mkName $ nameBase cn ++ "_CTX" -- mkName $ (baseName cn) ++ "_CTX"
+  dt <- pure $ pure $ DataD [] kName [] Nothing [RecC kName [(pn,Bang NoSourceUnpackedness NoSourceStrictness,pt) | (pn,pt) <- ctxFields]] []
+  ds <- [d|
+            instance Classify $(pure (ConT cn)) $(pure (ConT jn)) $(pure (ConT kName)) where
+              classify $(pure (ConP kName [] (map VarP (map (\(pn,pt) -> pn ) ctxFields )))) $(pure (VarP $ mkName "j")) $(pure (VarP $ mkName "ps")) = $(foldl (\f ((pv,_),(pn,pt)) -> [| $f (classify $(pure (VarE pv)) $(pure (VarE $ mkName "j")) (map (fmap (bimap $(pure (VarE pn)) id)) $(pure (VarE $ mkName "ps"))) ) |]) (pure (ConE cConName)) (zip ctxFields $ zip (map (\(pn,pt) -> pn ) fields ) cConTypes))
+
+          |] :: Q [Dec]
+  pure (dt ++ ds)
+  -- [d|  |]
+  -- [d| 
+      
+  --     instance Classify $(pure (ConT cn)) $(pure (ConT jn)) $(pure (ConT cn)) where
+  --       classify $(pure (ConP cConName [] (map VarP (map (\pType -> mkName $ "arg_" ) cConTypes )))) $(pure (VarP $ mkName "j")) $(pure (VarP $ mkName "ps")) = $(foldl (\f (pn,pt) -> [| $f (classify $(pure (VarE pn)) $(pure (VarE $ mkName "j")) $(pure (VarE $ mkName "ps")) ) |]) (pure (ConE cConName)) (zip (map (\pType -> mkName $ "arg_" ) cConTypes ) cConTypes))
+  --  |]

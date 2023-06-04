@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -ddump-splices #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Meta.Experiment where
 
@@ -51,3 +52,13 @@ z = zipn 3
 z' = $(zipn 3)
 -- main :: IO ()
 -- main = print (a :: MyData2)
+
+
+newtype EqJ = EqJ { isEq :: Bool } deriving Show
+
+-- instance Classify EqJ J1 () where
+--   classify () (ConsJ1 x y) _ = EqJ (x == y)
+
+
+--- deriveClassify ''EqJ ''J1
+

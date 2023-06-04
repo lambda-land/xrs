@@ -77,3 +77,5 @@ add2 = fun x y z -> x + y + z
 
 
 fac = fun n -> if n < 2 then 1 else n * (fac (n - 1))
+
+fac2 = fun n res -> if n == 0 then res else fac2 (n - 1) (n * res)

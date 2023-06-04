@@ -212,6 +212,8 @@ instance Show Val where
   show (VStr s)  = show s
   show (VChar c) = show c
   show (VList vs) = "[" ++ intercalate ", " (map show vs) ++ "]"
+  -- show (VClosure x e _ ns) = show (head ns)
+
   show (VClosure x e _ ns) = "(closure " ++ x ++ " -> " ++ show e ++ "," ++ show ns ++ ")"
 
 

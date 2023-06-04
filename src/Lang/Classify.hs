@@ -20,7 +20,7 @@ import GHC.Base (neChar)
 import Data.Bifunctor (first,bimap)
 
 import Lang.Evaluation (traceExample)
-import Lang.Denotation (runArithmetic,isBuiltIn)
+import Lang.Denotation (runArithmetic,isBuiltIn, runBinOp)
 
 
 class Context c j where
@@ -29,6 +29,9 @@ class Context c j where
   -- Compute the child contexts for a node in the proof tree
   childContexts :: c -> Proof j -> [c]
 
+
+-- data MH = MH { c1 :: IsBaseCase, c2 :: IsArith, c3 :: IsLiteral } deriving Show
+-- derivingClassify ''MH
 
 
 instance Context () j where
@@ -282,6 +285,18 @@ instance Score IsClosure where
 
 type CustomClassify = (((((((IsArith, IsLiteral), IsConditional), IsBaseCase), IsClosure),IsBinOp),IsIfExpr),IsRelevantRecCall)
 
+-- data CustomClassify = CC { isArith :: IsArith
+--                          , isLiteral :: IsLiteral
+--                          , isConditional :: IsConditional
+--                          , isBaseCase :: IsBaseCase
+--                          , isClosure :: IsClosure
+--                          , isBinOp :: IsBinOp
+--                          , isIfExpr :: IsIfExpr
+--                          , isRelevantRecCall :: IsRelevantRecCall
+--                          } 
+
+-- deriveClassify ''CustomClassify
+
 weightedCustomScore :: CustomClassify -> Float
 weightedCustomScore (((((((ia, it), ic), ibc),icl),ibo),iif),irrc) =
   -- dot (
@@ -336,17 +351,48 @@ runExample es = do
   let hjs = selectCustom' weightedCustomScore $ traceExample es
   let hjs' = map (bimap id fillEnvJ) hjs
   putStrLn "\n--- Unchanged Judgments ---\n"
-  mapM_ (putStrLn . ("    "++) . show) $ take 5 $ map snd $ hjs
-  let hjs'' = map (bimap id (exprMap runArithmetic)) hjs'
+  mapM_ (putStrLn . ("    "++) . show) $ take 4 $ map snd $ hjs
+  let hjs'' = map (bimap id postProcessJ) hjs'
   putStrLn "\n--- Post Processed ---\n"
-  mapM_ (putStrLn . ("    "++) . show) $ take 5 $ map snd $ hjs''
+  mapM_ (putStrLn . ("    "++) . show) $ take 4 $ map snd $ hjs''
+  -- mapM_ (putStrLn . ("    "++) . postProcess . ArithmeticPostProcess ) $ take 10 $ map snd $ hjs
+  -- mapM_ (putStrLn . ("    "++) . postProcess . SimpleArithmeticPostProcess ) $ take 10 $ map snd $ hjs
 
 
 
 postProcessJ :: EvalJ -> EvalJ
-postProcessJ = exprMap runArithmetic . fillEnvJ
+postProcessJ = {-exprMap runArithmetic .-} fillEnvJ
+
+class PostProcessing a where
+  postProcess :: a -> String
+
+newtype CanonicalPostProcess j = CanonicalPostProcess j
+
+instance Show j => PostProcessing (CanonicalPostProcess j) where
+  postProcess (CanonicalPostProcess j) = show j
 
 
+newtype ArithmeticPostProcess = ArithmeticPostProcess EvalJ
+
+instance PostProcessing ArithmeticPostProcess where
+  postProcess (ArithmeticPostProcess j) = show . exprMap runArithmetic . fillEnvJ $ j
+
+
+newtype SimpleArithmeticPostProcess = SimpleArithmeticPostProcess EvalJ
+
+instance PostProcessing SimpleArithmeticPostProcess where
+  postProcess (SimpleArithmeticPostProcess j) = show . exprMap runArithmeticSimple . fillEnvJ $ j
+    where runArithmeticSimple :: Expr -> Expr
+          runArithmeticSimple e = case e of
+            EOp e1 op e2 -> case (runArithmeticSimple e1, runArithmeticSimple e2) of
+                              (EInt a, EInt b) | op `elem` [Add,Sub] -> embed (runBinOp op (VInt a) (VInt b))
+                              (a, b) -> EOp a op b
+            EIf e1 e2 e3 -> EIf (runArithmeticSimple e1) (runArithmeticSimple e2) (runArithmeticSimple e3)
+            EApp e1 e2   -> EApp (runArithmeticSimple e1) (runArithmeticSimple e2)
+            ELet v e1 e2 -> ELet v (runArithmeticSimple e1) (runArithmeticSimple e2)
+            ELam v e'    -> ELam v (runArithmeticSimple e')
+            EList es     -> EList (map runArithmeticSimple es)
+            _            -> e
 
 -- instance (Context a j, Context b j, Context c j) => Context (a,b,c) j where
 --   rootCtx p = (rootCtx p, rootCtx p, rootCtx p)
