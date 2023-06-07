@@ -27,7 +27,7 @@ type M b = NDSM (MVar, [(GS,GS)], [(GS, GFS)], Int) b
 type R o = M o
 
 newMVar :: M MVar
-newMVar = NDSM (\(i,x,z,cnt)->[((succ i,x,z,cnt),succ i)])
+newMVar = mkState (\(i,x,z,cnt)->[((succ i,x,z,cnt),succ i)])
 
 class Wrapable o where
 	wrap :: MVar -> o
@@ -49,12 +49,12 @@ newVars cnt = do
 
 
 merge :: [(GS,GS)] -> M ()
-merge nx = NDSM (\(i,x,z,cnt)->case (gbiasl nx x) of
+merge nx = mkState (\(i,x,z,cnt)->case (gbiasl nx x) of
 		(Just y) -> [((i, y, z, cnt), ())]
 		Nothing -> mzero )
 
 addFunc :: (GS, GFS) -> M ()
-addFunc nx = NDSM (\(i, x, z, cnt)->[((i, x, nx:z, cnt), ())])
+addFunc nx = mkState (\(i, x, z, cnt)->[((i, x, nx:z, cnt), ())])
 
 -- i: Structure to be analyzed (usually environment and expressions)
 -- o: Structure produced by rules (usually types)
@@ -232,9 +232,9 @@ func2 (g, GFS (f, pl)) = do
 	x <- f pl'
 	(say "merge") `seq` merge [(g,x)]
 
-clr = NDSM (\(i,x,z,cnt)->[((i,[],z,cnt),())])
+clr = mkState (\(i,x,z,cnt)->[((i,[],z,cnt),())])
 
-incr = NDSM (\(i,x,z,cnt)->[((i,x,z,succ cnt), ())])
+incr = mkState (\(i,x,z,cnt)->[((i,x,z,succ cnt), ())])
 
 infer :: Judgement i o => i -> [o]
 infer expr = eval (try expr rules)

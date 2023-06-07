@@ -123,6 +123,7 @@ library
     build-depends:
         base,
         mtl,
+        transformers,
         array,
         process,
         template-haskell,
