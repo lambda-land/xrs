@@ -73,11 +73,12 @@ library
         Lang.Explanation
         Lang.NamedExplanation
         Lang.Heuristic
-        Lang.Classify
-        Lang.GenericC
         Lang.Classification
+        Lang.GenericC
         Meta.ExperimentTH
         Meta.Experiment
+        Tests.ExampleTests
+        
 
         -- MyLib,
         -- Lang,
@@ -118,7 +119,8 @@ library
         src/Lang,
         src/Lang/Parser,
         src/Lang/Parser/Lang,
-        src/Meta
+        src/Meta,
+        src/Tests
         -- src/Lang,
         -- src/Parser
 

@@ -8,7 +8,10 @@
 
 
 
-module Lang.Classify where
+module Lang.ClassificationInstances where
+
+
+import Lang.Classification
 
 
 import Data.Data (Proxy (Proxy))
@@ -23,12 +26,13 @@ import Lang.Evaluation (traceExample)
 import Lang.Denotation (runArithmetic,isBuiltIn, runBinOp)
 
 
+{-
 class Context c j where
   -- Initial context for the root judgement
   rootCtx :: Proxy j -> c
   -- Compute the child contexts for a node in the proof tree
   childContexts :: c -> Proof j -> [c]
-
+-}
 
 -- data MH = MH { c1 :: IsBaseCase, c2 :: IsArith, c3 :: IsLiteral } deriving Show
 -- derivingClassify ''MH
@@ -51,11 +55,11 @@ instance (Context (a,b) j, Context c j) => Context (a,b,c) j where
 
 
 
-
+{-
 class Context c j => Classify h j c | h -> j c where
   -- Compute the heuristic value for every node in the proof tree based on a context
   classify :: c -> j -> [Proof (h,j)] -> h
-
+-}
   -- h is the type of the classificiation data
   -- j is the type of the judgement
   -- c is the type of the context
@@ -63,47 +67,29 @@ class Context c j => Classify h j c | h -> j c where
 unzipProof :: Proof ((h1, h2), j) -> (Proof (h1, j), Proof (h2, j))
 unzipProof ps = (fmap (first fst) ps, fmap (first snd) ps)
 
-
-instance (Classify h1 j c1, Classify h2 j c2) => Classify (h1,h2) j (c1,c2) where
+instance (Classification h1 j c1, Classification h2 j c2) => Classification (h1,h2) j (c1,c2) where
   classify (c1,c2) j ps = (classify c1 j ps1, classify c2 j ps2) where
     (ps1, ps2) = unzip $ map unzipProof ps
 
-annotate :: forall h j c. Classify h j c => Proof j -> Proof (h,j)
-annotate = annotate' (rootCtx @c @j Proxy)
-  where annotate' ctx n@(Node j ps) = Node (h, j) ps' where
-          ctxs' = childContexts ctx n
-          ps' = zipWith annotate' ctxs' ps
-          h = classify ctx j ps'
 
 
-
-selectCustom :: forall h j c a. (Ord a, Classify h j c) => (h -> a) -> Proof j -> [j]
-selectCustom score = map snd . selectCustom' score
-
-selectCustom' :: forall h j c a. (Ord a, Classify h j c) => (h -> a) -> Proof j -> [(h,j)]
-selectCustom' score = reverse . sortOn (score . fst) . toList' . annotate @h
-
+{-
 data Polarity = Pos | Neg deriving (Show,Eq)
 
 class Score h where
   polarity :: Polarity
   polarity = Pos
   score :: h -> Float
-
-measure :: forall h. Score h => h -> Float
-measure h | polarity @h == Pos = score h
-          | polarity @h == Neg = 1.0 - score h
+-}
 
 
 
-select :: forall h j c. (Classify h j c, Score h) => Proof j -> [j]
-select = selectCustom (measure @h)
 
 
 
 newtype IsArith = IsArith Bool deriving (Show)
 
-instance Classify IsArith EvalJ () where
+instance Classification IsArith EvalJ () where
   classify _ (EvalJ _ _ (EOp {}) _) _ = IsArith True
   classify _ _ _ = IsArith False
 
@@ -124,7 +110,7 @@ instance Score IsArith where
 
 newtype IsLiteral = IsLiteral Bool deriving (Show)
 
-instance Classify IsLiteral EvalJ () where
+instance Classification IsLiteral EvalJ () where
   classify _ (EvalJ _ _ e _) _ = IsLiteral (isLiteral e)
     where isLiteral (EInt _) = True
           isLiteral (EBool _) = True
@@ -157,7 +143,7 @@ instance Context IsConditionalCTX EvalJ where
     = [IsConditionalCTX True, IsConditionalCTX b]
   childContexts (IsConditionalCTX b) (Node _ ps) = IsConditionalCTX b <$ ps
 
-instance Classify IsConditional EvalJ IsConditionalCTX where
+instance Classification IsConditional EvalJ IsConditionalCTX where
   classify (IsConditionalCTX b) _ _ = IsConditional b
 
 isConditionalScore (IsConditional True) = 1.0
@@ -186,7 +172,7 @@ newtype IsBaseCase = BHC Bool
 instance Show IsBaseCase where
   show (BHC b) = if b then "base case" else "not base case"
 
-instance Classify IsBaseCase EvalJ () where
+instance Classification IsBaseCase EvalJ () where
   classify () j@(EvalJ _ _ (EApp (EVar n) _) _) ps
     | isBuiltIn n = BHC False
     | doesOccurAgain n (fmap snd (ps !! 2)) = BHC False
@@ -211,7 +197,7 @@ instance Score IsBaseCase where
 
 newtype IsBinOp = IsBinOp Bool deriving Show
 
-instance Classify IsBinOp EvalJ () where
+instance Classification IsBinOp EvalJ () where
   classify _ (EvalJ _ _ e@(EOp _ _ _) _) _ | containsApp e = IsBinOp True
   classify _ _ _ = IsBinOp False
 
@@ -227,7 +213,7 @@ instance Score IsBinOp where
 
 newtype IsIfExpr = IsIfExpr Bool deriving Show
 
-instance Classify IsIfExpr EvalJ () where
+instance Classification IsIfExpr EvalJ () where
   classify _ (EvalJ _ _ (EIf _ _ _) _) _ = IsIfExpr True
   classify _ _ _ = IsIfExpr False
 
@@ -242,6 +228,7 @@ instance Score IsIfExpr where
 
 
 
+-- Increases with the number of recursive calls
 newtype IsRelevantRecCall = IsRelevantRecCall Int deriving Show
 
 newtype IsRelevantRecCallCTX = IsRelevantRecCallCTX Int
@@ -251,8 +238,8 @@ instance Context IsRelevantRecCallCTX EvalJ where
   childContexts (IsRelevantRecCallCTX n) (Node (EvalJ _ _ (EApp _ _) _) ps) = map IsRelevantRecCallCTX [n,n,n+1] 
   childContexts (IsRelevantRecCallCTX n) (Node _ ps) = IsRelevantRecCallCTX n <$ ps
 
-instance Classify IsRelevantRecCall EvalJ IsRelevantRecCallCTX where
-  classify (IsRelevantRecCallCTX n) (EvalJ _ _ (EApp _ _) _) _ = IsRelevantRecCall n
+instance Classification IsRelevantRecCall EvalJ IsRelevantRecCallCTX where
+  -- classify (IsRelevantRecCallCTX n) (EvalJ _ _ (EApp _ _) _) _ = IsRelevantRecCall n
   classify (IsRelevantRecCallCTX n) _ _ = IsRelevantRecCall n
 
 
@@ -271,7 +258,7 @@ instance Context IsClosure EvalJ where
   rootCtx _ = IsClosure False
   childContexts b (Node _ ps) = b <$ ps
 
-instance Classify IsClosure EvalJ () where
+instance Classification IsClosure EvalJ () where
   classify _ (EvalJ _ _ _ (VClosure {})) _ = IsClosure True
   classify _ _ _ = IsClosure False
 
@@ -351,17 +338,17 @@ runExample es = do
   let hjs = selectCustom' weightedCustomScore $ traceExample es
   let hjs' = map (bimap id fillEnvJ) hjs
   putStrLn "\n--- Unchanged Judgments ---\n"
-  mapM_ (putStrLn . ("    "++) . show) $ take 4 $ map snd $ hjs
+  mapM_ (putStrLn . ("    "++) . show) $ take 1000 $ map snd $ hjs
   let hjs'' = map (bimap id postProcessJ) hjs'
   putStrLn "\n--- Post Processed ---\n"
-  mapM_ (putStrLn . ("    "++) . show) $ take 4 $ map snd $ hjs''
+  mapM_ (putStrLn . ("    "++) . show) $ take 1000 $ map snd $ hjs''
   -- mapM_ (putStrLn . ("    "++) . postProcess . ArithmeticPostProcess ) $ take 10 $ map snd $ hjs
   -- mapM_ (putStrLn . ("    "++) . postProcess . SimpleArithmeticPostProcess ) $ take 10 $ map snd $ hjs
 
 
 
 postProcessJ :: EvalJ -> EvalJ
-postProcessJ = {-exprMap runArithmetic .-} fillEnvJ
+postProcessJ = exprMap runArithmetic . fillEnvJ
 
 class PostProcessing a where
   postProcess :: a -> String
@@ -480,3 +467,20 @@ data MyCustomClassify = MyCustomClassify IsArith IsLiteral IsConditional IsBaseC
 instance Score MyCustomClassify where
   score = genericScore (0.14, 0.15, 0.14, 0.15, 0.14, 0.14, 0.14, 0.14)
 -}
+
+
+
+
+type TestClassification = (IsBaseCase,IsRelevantRecCall)
+
+
+instance Strategy TestClassification EvalJ ((),IsRelevantRecCallCTX) where
+  pick :: Proof (TestClassification,EvalJ) -> [EvalJ]
+  pick pf = selectByAnnotation selection pf
+    where -- pf' = annotate @TestClassification pf
+          selection (BHC True,_) = True
+          selection (_,IsRelevantRecCall 1) = True
+          selection (_,_) = False
+
+
+pickTestClassficationStrategy = pick' @TestClassification -- $ traceExample "fac 5"

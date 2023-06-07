@@ -213,8 +213,10 @@ instance Show Val where
   show (VChar c) = show c
   show (VList vs) = "[" ++ intercalate ", " (map show vs) ++ "]"
   -- show (VClosure x e _ ns) = show (head ns)
-
-  show (VClosure x e _ ns) = "(closure " ++ x ++ " -> " ++ show e ++ "," ++ show ns ++ ")"
+  show (VClosure x e _ [n]) = show n
+  show (VClosure x e _ (_:n:_)) = show n
+  -- show (VClosure x e _ (n:_)) = show n
+  -- show (VClosure x e _ ns) = "(closure " ++ x ++ " -> " ++ show e ++ "," ++ show ns ++ ")"
 
 
 instance Latex Expr where
