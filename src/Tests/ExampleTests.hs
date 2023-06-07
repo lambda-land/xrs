@@ -26,16 +26,16 @@ data Trial = Trial { target :: EvalJ,             -- The target judgment
                    }
 
 
-trial1 :: Trial
-trial1 = Trial { target = (fac 5 => 120)
-               , expected = [fac 4 => 24, 5 * 24 => 120]
-               , results = [
-                    [fac 4 => 24, 5 * (fac 4) => 120],                  -- Results for the first strategy   1/3
-                    [fac 4 => 24, 5 * (fac 4) => 120, 5 * 24 => 120],   -- Second strategy                  2/5
-                    [fac 4 => 24, 120 => 120]                           -- Third strategy                   1/3
-                  ]
-                }
-               ]}
+-- trial1 :: Trial
+-- trial1 = Trial { target = (fac 5 => 120)
+--                , expected = [fac 4 => 24, 5 * 24 => 120]
+--                , results = [
+--                     [fac 4 => 24, 5 * (fac 4) => 120],                  -- Results for the first strategy   1/3
+--                     [fac 4 => 24, 5 * (fac 4) => 120, 5 * 24 => 120],   -- Second strategy                  2/5
+--                     [fac 4 => 24, 120 => 120]                           -- Third strategy                   1/3
+--                   ]
+--                 }
+--                ]}
 
 
 
