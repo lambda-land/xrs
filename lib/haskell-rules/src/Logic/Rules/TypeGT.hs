@@ -98,8 +98,8 @@ bind_ gfs = do
 
 
 --instance Isomorphic a (L a) where
---	to = 	V
---	from (V x) = x
+-- to =  V
+-- from (V x) = x
 
 
 up :: (Isomorphic a o, Wrapable o, Unifiable o) => (a -> Bool) -> o -> Result o
@@ -108,9 +108,9 @@ up f x = do
   let a' = wrap a
   bind (GFS (f', [x'])) a'
   return a'
-  where	x' = mkGS x
-    f' = (\[x]->let x'=from (frGS x) 
-      in if (f x') then do {m <- newMVar; return (mkGS m);} else mzero)
+  where x' = mkGS x
+        f' = (\[x]->let x'=from (frGS x) 
+          in if (f x') then do {m <- newMVar; return (mkGS m);} else mzero)
 
 --return $ mkGS (to (f x')))
 
@@ -121,10 +121,10 @@ bp f x y = do
   let a' = wrap a
   bind (GFS (f', [x',y'])) a'
   return a'
-  where	x' = mkGS x
-    y' = mkGS y
-    f' = (\[x,y]->let x'=from (frGS x) in let y'=from (frGS y) 
-      in if (f x' y') then do {m <- newMVar; return (mkGS m);} else mzero)
+  where x' = mkGS x
+        y' = mkGS y
+        f' = (\[x,y]->let x'=from (frGS x) in let y'=from (frGS y) 
+              in if (f x' y') then do {m <- newMVar; return (mkGS m);} else mzero)
 
 
 bf :: (Isomorphic a o, Wrapable o, Unifiable o) => (a -> a -> a) -> o -> o -> Result o
@@ -134,10 +134,10 @@ bf f x y = do
   a' <- newVar
   bind (GFS (f', [x',y'])) a'
   return a'
-  where	x' = mkGS x
-    y' = mkGS y
-    f' = (\[x,y]->let x'=from (frGS x) in let y'=from (frGS y) 
-      in return $ mkGS (to (f x' y')))
+  where x' = mkGS x
+        y' = mkGS y
+        f' = (\[x,y]->let x'=from (frGS x) in let y'=from (frGS y) 
+          in return $ mkGS (to (f x' y')))
 
 bfM :: (Isomorphic a o, Wrapable o, Unifiable o) => (a -> a -> Result a) -> o -> o -> Result o
 bfM f x y = do
@@ -145,13 +145,13 @@ bfM f x y = do
   let a' = wrap a
   bind (GFS (f', [x',y'])) a'
   return a'
-  where	x' = mkGS x
-    y' = mkGS y
-    f' = (\[x,y]->let x'=from (frGS x) in let y'=from (frGS y) 
-      in do
-        v <- f x' y'
-        return $ mkGS $ to v
-      )
+  where x' = mkGS x
+        y' = mkGS y
+        f' = (\[x,y]->let x'=from (frGS x) in let y'=from (frGS y) 
+          in do
+            v <- f x' y'
+            return $ mkGS $ to v
+          )
 
 ufM :: (Isomorphic a o, Wrapable o, Unifiable o) => (a -> Result a) -> o -> Result o
 ufM f x = do
@@ -159,12 +159,12 @@ ufM f x = do
   let a' = wrap a
   bind (GFS (f', [x'])) a'
   return a'
-  where	x' = mkGS x
-    f' = (\[x]->let x'=from (frGS x)
-      in do
-        v <- f x'
-        return $ mkGS $ to v
-      )
+  where x' = mkGS x
+        f' = (\[x]->let x'=from (frGS x)
+          in do
+            v <- f x'
+            return $ mkGS $ to v
+          )
 
 uf :: (Isomorphic a o, Wrapable o, Unifiable o) => (a -> a) -> o -> Result o
 uf f x = do
@@ -172,10 +172,10 @@ uf f x = do
   let a' = wrap a
   bind (GFS (f', [x'])) a'
   return a'
-  where	x' = mkGS x
-    f' = (\[x]->let x'=from (frGS x) 
-      in return $ mkGS (to (f x')))
-    
+  where x' = mkGS x
+        f' = (\[x]->let x'=from (frGS x) 
+          in return $ mkGS (to (f x')))
+        
 
 
 say x = ()-- Debug.Trace.trace x ()
@@ -217,7 +217,7 @@ pt :: Unifiable o => o -> R o
 pt t = do
   let t' = mkGS t
   mgs <- pt' t' 
-  return $ frGS mgs	
+  return $ frGS mgs 
 
 
 pt' :: GS -> Result GS
@@ -248,8 +248,8 @@ inf e = infer e
 
 eval :: Unifiable o => Result o -> [o]
 eval x = map snd rsm
-  where	rnsm = do { b <- x; (_,_,z,cnt) <- fromState id; 
-      funcs z; 
-      c <- pt b; return c; }
-    rsm = runNDSM rnsm (base, [], [], 1)
+  where rnsm = do { b <- x; (_,_,z,cnt) <- fromState id; 
+          funcs z; 
+          c <- pt b; return c; }
+        rsm = runNDSM rnsm (base, [], [], 1)
 
