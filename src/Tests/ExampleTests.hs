@@ -35,7 +35,7 @@ data Trial = Trial { target :: EvalJ,             -- The target judgment
 --                     [fac 4 => 24, 120 => 120]                           -- Third strategy                   1/3
 --                   ]
 --                 }
---                ]}
+
 
 
 

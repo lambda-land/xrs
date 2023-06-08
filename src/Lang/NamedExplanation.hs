@@ -11,6 +11,9 @@ import Lang.Denotation
 import Data.List (intercalate,nub)
 
 
+import Lang.Classification
+import Lang.ClassificationInstances ()
+
 
 
 
@@ -69,11 +72,14 @@ fillRight p =
   -------------------------------------------------------------------------------------XAppClosure1
   < D, rho |- e1 e2 => (closure y -> e', rho'', (n1 n2):ns) = v3 | G1, G2, (n1 n2) => v3 > 
 --}
-    (EvalJ d rho (EApp e1 e2) v3@(VClosure _ _ _ (n':ns)), [j1,j2@(EvalJ _ _ _ (VClosure {})),_])
+    -- (EvalJ d rho (EApp e1 e2) v3@(VClosure _ _ _ (n':ns)), [j1,j2@(EvalJ _ _ _ (VClosure {})),_])
+    --   -> let g1 = fillRight (subTreeByJudge j1 p)
+    --          g2 = fillRight (subTreeByJudge j2 p)
+    --       in g1 ++ g2 ++ [XEvalJ n' v3]
+    (EvalJ d rho (EApp e1 e2) v3@(VClosure _ _ _ ((EApp n1 e2'):ns)), [j1,j2@(EvalJ _ _ _ (VClosure _ _ _(n:_))),_])
       -> let g1 = fillRight (subTreeByJudge j1 p)
              g2 = fillRight (subTreeByJudge j2 p)
-          in g1 ++ g2 ++ [XEvalJ n' v3]
-
+          in g1 ++ g2 ++ [XEvalJ (EApp n1 n) v3]
 
 {--
   < D, rho |- e1 => (closure z -> e, rho', (n:_)) | G1 >
@@ -82,11 +88,15 @@ fillRight p =
   ------------------------------------------------------------------------------------XAppClosure2
   < D, rho |- e1 e2 => (closure y -> e', rho'', (n e2):ns) = v3 | G1, G2, n e2 => v3 >
 --}
-    (EvalJ d rho (EApp e1 e2) v3@(VClosure _ _ _ (n':_)),[j1,j2,_])
+    -- (EvalJ d rho (EApp e1 e2) v3@(VClosure _ _ _ (n':_)),[j1,j2,_])
+    --   -> let g1 = fillRight (subTreeByJudge j1 p)
+    --          g2 = fillRight (subTreeByJudge j2 p)
+    --       in g1 ++ g2 ++ [XEvalJ n' v3]
+
+    (EvalJ d rho (EApp e1 e2) v3@(VClosure _ _ _ ((EApp n1 e2'):_)),[j1,j2,_])
       -> let g1 = fillRight (subTreeByJudge j1 p)
              g2 = fillRight (subTreeByJudge j2 p)
-          in g1 ++ g2 ++ [XEvalJ n' v3]
-
+          in g1 ++ g2 ++ [XEvalJ (EApp n1 (embed (eval d rho e2'))) v3]
 
 {--
   < D, rho |- e1 => (closure z -> e, rho', (n:_)) | G1 >
@@ -132,8 +142,6 @@ instance Show XTag where
 --   show (XTag j []) = "..."
 --   show (XTag j xs) = intercalate ", " $ map show xs
 
-
-
 -- It is the case that `j`, because
 -- display (tagProof $ proof j)...
 
@@ -148,21 +156,19 @@ rightProofTree :: Proof XTag -> Proof [XEvalJ]
 rightProofTree (Node (XTag j xs) cs) = Node xs (map rightProofTree cs)
 
 
-
-
-
-
-
 -- Two options: modify app rule, or do post-processing. < length ([1, 2, 3, 4, (3 + 9)]) => 5 | length ([1, 2, 3, 4, 12]) => 5 >
 -- App rule is correct in the sense that it handles expressions of tthe form e1 (e2 ... en), but not e1 e2. 
 
+data XTagClassify = XTagClassify [XEvalJ]
 
+instance Show XTagClassify where
+  show (XTagClassify []) = "[ ]"
+  show (XTagClassify xs) = "[" ++ (intercalate ", " $ map show $ nub xs) ++ "]"
 
+instance Classification XTagClassify EvalJ () where
+  classify :: () -> EvalJ -> [Proof (XTagClassify, EvalJ)] -> XTagClassify
+  classify _ j ps = XTagClassify $ fillRight $ Node j (map (fmap snd) ps) 
 
-
-
-
---
 
 
 -- 
