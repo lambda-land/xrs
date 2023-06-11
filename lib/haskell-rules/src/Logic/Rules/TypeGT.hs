@@ -7,10 +7,11 @@ import Data.Maybe
 import Data.Data
 import Data.Typeable
 import Control.Monad
+import Control.Applicative
 import Logic.Rules.TypeGU
 import Logic.Rules.NDSM
 
-import Foreign
+import Foreign ()
 
 import qualified Debug.Trace
 
@@ -73,9 +74,11 @@ newVars cnt = do
 
 
 merge :: [(GS,GS)] -> Result ()
-merge nx = mkState (\(i,x,z,cnt)->case (gbiasl nx x) of
-    (Just y) -> [((i, y, z, cnt), ())]
-    Nothing -> mzero )
+merge nx = mkState merge'
+  where 
+    merge' (i,x,z,cnt) = case gbiasl nx x of
+      Just y -> [((i, y, z, cnt), ())]
+      Nothing -> [] -- mzero
 
 addFunc :: (GS, GFS) -> Result ()
 addFunc nx = mkState (\(i, x, z, cnt)->[((i, x, nx:z, cnt), ())])
@@ -178,7 +181,7 @@ uf f x = do
         
 
 
-say x = ()-- Debug.Trace.trace x ()
+say x = Debug.Trace.trace x ()
 
 suppose :: Judgement i o => i -> o -> Result ()
 suppose expr typ = do
@@ -191,10 +194,14 @@ suppose expr typ = do
     Nothing -> do {(say "mzero") `seq` mzero;}
 --mzero
 
-
 -- infix notation for suppose
 (.>.) :: Judgement i o => i -> o -> Result ()
 (.>.) = suppose
+
+
+
+
+
 
 (.==.) :: Unifiable o => o -> o -> Result ()
 (.==.) e1 e2 = do
@@ -208,6 +215,7 @@ suppose expr typ = do
 try :: i -> [i -> R o] -> R o
 try expr (f:fx) = (say "step" `seq` f expr) `mplus` (try expr fx) 
 try expr [] = mzero
+
 
 consider :: [a] -> R a
 consider [] = mzero
@@ -231,6 +239,7 @@ funcs gfx = do
   
 
 
+func2 :: (GS, GFS) -> Result ()
 func2 (g, GFS (f, pl)) = do
   pl' <- mapM pt' pl
   x <- f pl'
@@ -248,8 +257,12 @@ inf e = infer e
 
 eval :: Unifiable o => Result o -> [o]
 eval x = map snd rsm
-  where rnsm = do { b <- x; (_,_,z,cnt) <- fromState id; 
-          funcs z; 
-          c <- pt b; return c; }
-        rsm = runNDSM rnsm (base, [], [], 1)
+  where 
+        rsm = runNDSM (rnsm x) (base, [], [], 1)
 
+rnsm x = do 
+  b <- x
+  (_,_,z,cnt) <- fromState id
+  funcs z
+  c <- pt b
+  return c

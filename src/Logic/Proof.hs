@@ -1,3 +1,4 @@
+{-# LANGUAGE PatternSynonyms #-}
 module Logic.Proof where
 
 import Display.Latex 
@@ -8,8 +9,14 @@ import Data.Maybe (fromJust)
 
 
 
+
 data Proof j = Node j [Proof j]
 
+pattern Proof :: j -> [Proof j] -> Proof j
+pattern Proof j ps = Node j ps
+
+pattern Leaf :: j -> Proof j
+pattern Leaf j = Node j []
 
 conclusion :: Proof j -> j
 conclusion (Node j _) = j

@@ -11,6 +11,7 @@ import Control.Monad
 
 import Data.List (nub, (\\))
 
+import Logic.Inference
 
 {-
 class Unifiable o => Judgement i o | i -> o  where
@@ -125,32 +126,32 @@ max' = bf (max :: Int -> Int -> Int)
 instance Judgement Shape BBox where
   rules :: [Shape -> Result BBox]
   rules = [box,side,above]
-    where 
-      box :: Shape -> Result BBox
-      box Box = return (BBox (to @Int 1) (to @Int 1))
-      box _ = mzero
 
-      side :: Shape -> Result BBox
-      side (s1 :<: s2) = do
-        [w1,h1] <- newVars 2
-        [w2,h2] <- newVars 2
-        s1 .>. BBox w1 h1
-        s2 .>. BBox w2 h2
-        w' <- w1 .+. w2
-        h' <- max' h1 h2
-        return (BBox w' h')
-      side _ = mzero
-      
-      above :: Shape -> Result BBox
-      above (s1 :^: s2) = do
-        [w1,h1] <- newVars 2
-        [w2,h2] <- newVars 2
-        s1 .>. BBox w1 h1
-        s2 .>. BBox w2 h2
-        w' <- max' w1 w2
-        h' <- h1 .+. h2
-        return (BBox w' h')
-      above _ = mzero
+box :: Shape -> Result BBox
+box Box = return (BBox (to @Int 1) (to @Int 1))
+box _ = mzero
+
+side :: Shape -> Result BBox
+side (s1 :<: s2) = do
+  [w1,h1] <- newVars 2
+  [w2,h2] <- newVars 2
+  s1 .>. BBox w1 h1
+  s2 .>. BBox w2 h2
+  w' <- w1 .+. w2
+  h' <- max' h1 h2
+  return (BBox w' h')
+side _ = mzero
+
+above :: Shape -> Result BBox
+above (s1 :^: s2) = do
+  [w1,h1] <- newVars 2
+  [w2,h2] <- newVars 2
+  s1 .>. BBox w1 h1
+  s2 .>. BBox w2 h2
+  w' <- max' w1 w2
+  h' <- h1 .+. h2
+  return (BBox w' h')
+above _ = mzero
 
 
 data BBoxJudge = BBoxJudge Shape BBox
@@ -162,6 +163,70 @@ instance Show BBoxJudge where
 instance Composite Shape BBox BBoxJudge where
   composite :: Shape -> BBox -> BBoxJudge
   composite = BBoxJudge
+
+
+
+
+{- Simple Expression Language -}
+
+data OExpr
+  = ENum Int
+  | EPlus OExpr OExpr
+  | EPair OExpr OExpr
+  | EFst OExpr
+
+instance Show OExpr where
+  show :: OExpr -> String
+  show (ENum n) = show n
+  show (EPlus e1 e2) = "(" ++ show e1 ++ " + " ++ show e2 ++ ")"
+  show (EPair e1 e2) = "(" ++ show e1 ++ "," ++ show e2 ++ ")"
+  show (EFst e) = "fst " ++ show e
+
+data OType
+  = TInt
+  | TPair OType OType
+  deriving (Eq, Read, Show, Typeable, Data)
+
+instance Isomorphic OType (L OType) where
+  to :: OType -> L OType
+  to = V
+  from :: L OType -> OType
+  from (V x) = x
+
+instance Unifiable (L OType) where
+
+instance Judgement OExpr (L OType) where
+  rules :: [OExpr -> Result (L OType)]
+  rules = [num,pair,first]
+    where
+      num :: OExpr -> Result (L OType)
+      num (ENum _) = return (to TInt)
+      num _ = mzero
+
+      first :: OExpr -> Result (L OType)
+      first (EFst e) = do
+        [t1,t2] <- newVars 2
+        t <- bf TPair t1 t2
+        -- e .>>. t
+        e .|-. t
+        return t
+      first _ = mzero
+
+      pair :: OExpr -> Result (L OType)
+      pair (EPair e1 e2) = do
+        [t1,t2] <- newVars 2
+        -- e1 .>>. t1
+        -- e2 .>>. t2
+        e1 .|-. t1
+        e2 .|-. t2
+        t <- bf TPair t1 t2
+        return t
+      pair _ = mzero
+
+
+
+
+
 
 
 
@@ -204,6 +269,7 @@ instance Judgement Shape BBox where
 
 -}
 
+{-
 data Expr = Var String | App Expr Expr | Lam String Expr
         deriving Show
 
@@ -255,4 +321,7 @@ vay = inf (App (Lam "x" (Var "x")) (Var "y"))
 vxy = inf (App (Var "x") (Var "y"))
 
 vxx = inf (App (Var "x") (Var "x"))
+
+-}
+
 

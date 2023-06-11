@@ -94,6 +94,7 @@ library
 
         Logic.Inference
         Logic.Examples
+        Logic.ChrisMonad
         
 
         -- MyLib,
