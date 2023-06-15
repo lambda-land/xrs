@@ -3,7 +3,7 @@ module Logic.ChrisMonad where
 import Control.Monad (ap)
 
 
-{-
+
 data RoseTree a = Node a [RoseTree a] deriving (Show)
 data NState s a = NState a [RoseTree s] deriving (Functor)
 
@@ -30,4 +30,3 @@ main = print $ run $ do
   y <- addChild (return 2)
   return (x + y)
 
--}

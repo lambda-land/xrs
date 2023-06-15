@@ -83,10 +83,12 @@ library
         Lang.NamedExplanation
         Lang.Heuristic
         Lang.Classification
+        Lang.ClassificationInstances
         Lang.GenericC
         Meta.ExperimentTH
         Meta.Experiment
         Tests.ExampleTests
+        Lang.Lifted
 
         Logic.Rules.NDSM
         Logic.Rules.TypeGT
@@ -95,6 +97,8 @@ library
         Logic.Inference
         Logic.Examples
         Logic.ChrisMonad
+
+        Control.Monad.Trace
         
 
         -- MyLib,
@@ -141,6 +145,8 @@ library
         src/Lang/Parser/Lang,
         src/Meta,
         src/Tests,
+        src/Control,
+        src/Control/Monad,
         -- src/Lang,
         -- src/Parser
         lib/haskell-rules/src

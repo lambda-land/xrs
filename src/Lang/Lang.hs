@@ -5,6 +5,7 @@ module Lang.Lang where
 import Display.Latex
 
 import Data.List ((\\), intercalate)
+import Data.Maybe
 
 
 
@@ -149,9 +150,28 @@ embed (VBool b) = EBool b
 embed (VStr s)  = EStr s
 embed (VChar c) = EChar c
 embed (VList vs) = EList (map embed vs)
-embed (VClo _ _ _) = error "cannot embed a closure"
+embed (VClosure _ _ _ [n]) = n
+embed (VClosure _ _ _ (n:_)) = n
+embed (VClosure _ _ _ (_:n:_)) = n
+-- embed (VClosure _ _ _ (n:_:_)) = n
+-- embed c@(VClo _ _ _) = EVar (show c)
+embed (VClo _ _ _) = error "cannot embed (this) closure"
 
 
+unembed :: Expr -> Maybe Val
+unembed (EInt i)   = Just (VInt i)
+unembed (EBool b)  = Just (VBool b)
+unembed (EStr s)   = Just (VStr s)
+unembed (EChar c)  = Just (VChar c)
+unembed (EList es) = VList <$> mapM unembed es
+unembed _ = Nothing
+
+
+isValue :: Expr -> Bool
+isValue (ELam _ _) = True
+-- FIXME: this is incorrect for things like
+-- [\x -> ...]
+isValue e = isJust (unembed e)
 
 
 {--   Instances   --}
@@ -213,8 +233,8 @@ instance Show Val where
   show (VChar c) = show c
   show (VList vs) = "[" ++ intercalate ", " (map show vs) ++ "]"
   -- show (VClosure x e _ ns) = show (head ns)
-  show (VClosure x e _ [n]) = show n
-  show (VClosure x e _ (_:n:_)) = show n
+  show (VClosure x e _ [n]) = show n -- good
+  show (VClosure x e _ (_:n:_)) = show n -- good
   -- show (VClosure x e _ (n:_)) = show n
   -- show (VClosure x e _ ns) = "(closure " ++ x ++ " -> " ++ show e ++ "," ++ show ns ++ ")"
 
