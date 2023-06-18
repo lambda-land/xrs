@@ -24,7 +24,7 @@ pattern (:=>) e v <- EvalJ _ _ e v
 
 pattern (:|-) ts j = Proof j ts
 
-pattern Val <- (isValue -> True)
+-- pattern Val <- (isValue -> True)
 
 getValue :: Expr -> [Proof EvalJ] -> Val
 getValue e ts = (\(EvalJ _ _ _ v) -> v) $ head $ filter (\(EvalJ _ _ e' _) -> e == e') (map conclusion ts)

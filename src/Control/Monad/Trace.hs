@@ -1,4 +1,31 @@
 module Control.Monad.Trace where
+
+
+import Logic.Proof
+
+import Control.Monad.State
+
+type TraceT s m a = StateT (s,[Proof s]) m a
+
+child :: Monad m => TraceT j m a -> TraceT j m a
+child t = do
+  (s,ps) <- get
+  put (s, [])
+  a <- t
+  (s',ps') <- get
+  put (s, Proof s' ps' : ps)
+  return a
+
+yield :: Monad m => j -> TraceT j m j
+yield j = do
+  (s,ps) <- get
+  put (s, [Proof j ps])
+  return j
+
+
+
+
+
 -- import Control.Monad.Trans.Class
 -- import Control.Monad.Trans.State
 -- import Control.Monad.Identity

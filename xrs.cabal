@@ -42,7 +42,7 @@ maintainer:         moncrief@oregonstate.edu
 build-type:         Simple
 
 -- Extra doc files to be distributed with the package, such as a CHANGELOG or a README.
-extra-doc-files:    CHANGELOG.md
+extra-doc-files:    README.md
 
 -- Extra source files to be distributed with the package, such as examples, or a tutorial module.
 -- extra-source-files:
@@ -68,39 +68,18 @@ library
         Logic.Proof
         Logic.Problems
         Display.Latex
-        Tools
         Lang.Lang
         Lang.Denotation
         Lang.Operation
         Lang.Parser
-        Lang.LexParser
-        Lang.ParParser
-        Lang.AbsParser
-        Lang.LayoutParser
-        Lang.ASTConverter
         Lang.Evaluation
         Lang.Explanation
         Lang.NamedExplanation
         Lang.Heuristic
         Lang.Classification
         Lang.ClassificationInstances
-        Lang.GenericC
-        Meta.ExperimentTH
-        Meta.Experiment
-        Tests.ExampleTests
-        Lang.Lifted
 
-        Logic.Rules.NDSM
-        Logic.Rules.TypeGT
-        Logic.Rules.TypeGU
-
-        Logic.Inference
-        Logic.Examples
-        Logic.ChrisMonad
-
-        Control.Monad.Trace
-        
-
+    
         -- MyLib,
         -- Lang,
         -- OpSem,
@@ -113,6 +92,28 @@ library
 
     -- Modules included in this library but not exported.
     other-modules:
+        Lang.LexParser
+        Lang.ParParser
+        Lang.AbsParser
+        Lang.LayoutParser
+        Lang.ASTConverter
+        Tools
+        Lang.GenericC
+        Meta.ExperimentTH
+        Meta.Experiment
+        Tests.ExampleTests
+        Lang.Lifted
+        Lang.LiftedLet
+
+        Logic.Rules.NDSM
+        Logic.Rules.TypeGT
+        Logic.Rules.TypeGU
+
+        Logic.Inference
+        Logic.Examples
+        Logic.ChrisMonad
+
+        Control.Monad.Trace
         -- Logic.ProofDisplay,
         -- ErrorHandler,
         -- ASTConverter,
@@ -132,7 +133,8 @@ library
         array,
         process,
         template-haskell,
-        syb
+        syb,
+        containers,
         -- xrs-haskell-rules
 
     -- Directories containing source files.

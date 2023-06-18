@@ -11,6 +11,8 @@ import Logic.Proof
 std :: GlobalEnv
 std = loadFile "progs/std.xr"
 
+parseExample :: String -> Expr
+parseExample = parseString
 
 evalExample :: String -> Val
 evalExample s = eval std [] (parseString s)

@@ -1,5 +1,14 @@
 {-# LANGUAGE PatternSynonyms #-}
-module Logic.Proof where
+module Logic.Proof (
+  -- * Proof Trees
+  Proof(..), pattern Proof, pattern Leaf,
+  -- * Proof Generation
+  Explain(..), proofs, prove, prove', suppose,
+  -- * Proof Tree Manipulation
+  conclusion, children,
+  hidePast, hide,
+  countNodes, getRow, toList, toList',
+) where
 
 import Display.Latex 
 
@@ -7,51 +16,57 @@ import Data.List (intercalate)
 import Data.Maybe (fromJust)
 
 
+-- * Proof Trees
 
 
-
+-- ---------------------------------------------------------------------------
+-- | The type of proof trees parameterized by the type of judgments @j@.
 data Proof j = Node j [Proof j]
 
+-- | A constructor synonym for @Node@.
 pattern Proof :: j -> [Proof j] -> Proof j
 pattern Proof j ps = Node j ps
 
+-- | A constructor synonym for @Node@ with no premises.
 pattern Leaf :: j -> Proof j
 pattern Leaf j = Node j []
 
+-- | Extract the conclusion/root from a proof tree.
 conclusion :: Proof j -> j
 conclusion (Node j _) = j
 
-
+-- | Extract the premises/children from a proof tree.
 children :: Proof j -> [Proof j]
 children (Node _ ps) = ps
 
 
-
+-- | Get the proof tree with the premises hidden after the \(n\)th level.
 hidePast :: Int -> Proof j -> Proof j
 hidePast 0 (Node j _) = Node j []
 hidePast n (Node j ps) = Node j (map (hidePast (n-1)) ps)
 
+-- | Hide the subtrees of a proof tree that have the given judgment as their conclusion.
 hide :: Eq j => j -> Proof j -> Maybe (Proof j)
 hide j (Node j' ps)
     | j == j' = Nothing
     | otherwise = Just $ Node j' (map fromJust $ filter (not . null) $ map (hide j) ps)
 
 
-
+-- | Count the number of judgemnets in a proof tree.
 countNodes :: Proof j -> Int
 countNodes (Node _ []) = 1
 countNodes (Node _ ps) = 1 + sum (map countNodes ps)
 
-
+-- | Get the \(n\)th row of a proof tree.
 getRow :: Int -> Proof j -> [j]
 getRow 0 (Node j _) = [j]
 getRow n (Node _ ps) = concatMap (getRow (n-1)) ps
 
-
+-- | Convert the proof tree to a list of judgements.
 toList :: Eq j => Proof j -> [j]
 toList p = concat $ takeWhile (/=[]) [getRow n p | n <- [0..countNodes p - 1]]
 
-
+-- | Convert the proof tree to a list of judgements.
 toList' :: Proof a -> [a]
 toList' (Node j []) = [j]
 toList' (Node j ps) = j : concatMap toList' ps
@@ -86,12 +101,20 @@ instance Latex j => Latex (Proof j) where
   latex (Node j ps) = "\\infer[]{" ++ latex j ++ "}{" ++ intercalate " && " (map latex ps) ++ "}"
 
 
+-- * Proof Generation
 
 class Explain j where
+  -- | Returns a list of all possible premises of a given judgment.
+  -- 
+  --   * @premises j = []@ if @j@ is decidably false.A
+  --
+  --   * @premises j = [[]]@ if @j@ is an axiom.
+  --
+  --   * @premises j = [p1,p2,...,pn] : tail (premises j) @ if @j@ is provable from the conclusions of @p1, p2, ..., pn@.
   premises :: j -> [[j]]
 
 
--- Returns a list of all possible proofs of a given judgment.
+-- | Returns a list of all possible proofs of a given judgment.
 proofs :: Explain j => j -> [Proof j]
 proofs j | [[]] <- premises j = [Node j []]
 proofs j = do 
@@ -101,12 +124,16 @@ proofs j = do
         then []
         else map (Node j) $ sequence pfs
 
--- Returns the first proof of a given judgment.
+-- | Returns the first proof of a given judgment.
+-- 
+-- > prove j = listToMaybe (proofs j)
 prove :: Explain j => j -> Maybe (Proof j)
 prove j | (p:_) <- proofs j = Just p
 prove _                     = Nothing
 
--- Returns a proof of a given judgment or fails if the judgment is not provable.
+-- | Returns a proof of a given judgment or fails if the judgment is not provable.
+--
+-- > prove' j = fromJust (prove j)
 prove' :: Explain j => j -> Proof j
 prove' = fromJust . prove
 
@@ -119,7 +146,7 @@ prove' = fromJust . prove
 --         lss (a:as) = [concatMap (a':) (lss as) | a' <- a]
 
 
--- Gives the first proof of a given judgment and doesn't fail if the judgement is not provable.
+-- | Gives the first proof of a given judgment and doesn't fail if the judgement is not provable.
 suppose :: Explain j => j -> Proof j
 suppose j = Node j (map suppose ps)
   where ps = case premises j of { [] -> []; (p:_) -> p }

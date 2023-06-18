@@ -1,4 +1,5 @@
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module Lang.Lang where
 
@@ -47,6 +48,9 @@ pattern VClo v e l <- VClosure v e l _ where
 
 type LocalEnv = [(Var, Val)]
 type GlobalEnv = [(Var, Expr)]
+
+pattern Val :: Expr
+pattern Val <- (isValue -> True)
 
 
 
