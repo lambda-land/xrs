@@ -7,6 +7,7 @@ import Lang.Parser
 
 import Logic.Proof
 
+
 {-# INLINE std #-}
 std :: GlobalEnv
 std = loadFile "progs/std.xr"

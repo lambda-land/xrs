@@ -89,7 +89,20 @@ constructLet e = bindingsToLet (execFactor e) e
 
 
 liftedLetProofTree :: Expr -> Proof EvalJ
-liftedLetProofTree =  traceExpr . constructLet 
+liftedLetProofTree = fmap fillEnvJ . fmap fillEnvJ . traceExpr . constructLet 
 
--- exmp = parseExample "add (id 2 + id 3) (id 6)"
-exmp = parseExample "add 2 3"
+isLiftedLetJ :: EvalJ -> Bool
+isLiftedLetJ (EvalJ _ _ (ELet ('t':'m':'p':_) _ _) _) = True
+isLiftedLetJ _ = False
+
+extract :: Proof EvalJ -> [EvalJ]
+extract (Proof j ps) | isLiftedLetJ j = concatMap extract ps
+                     | otherwise = return j
+
+exmp = parseExample "add (id 2 + id 3) (id 6)"
+-- exmp = parseExample "add 2 3"
+
+exmp1 = extract $ liftedLetProofTree $ parseExample "add (id 2) (id 3)"
+exmp2 = extract $ liftedLetProofTree $ parseExample "id (add 2) 5" -- closure names not being filled in with tmp vars
+
+exmp3 = extract $ liftedLetProofTree $ parseExample "length (filter odd [1,2,3,4,5])"

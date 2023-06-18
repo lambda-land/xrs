@@ -2,6 +2,7 @@
 
 
 
+odd = fun n -> if n == 0 then False else if n == 1 then True else odd (n - 2)
 
 flip = fun f x y -> f y x
 
@@ -79,3 +80,13 @@ add2 = fun x y z -> x + y + z
 fac = fun n -> if n < 2 then 1 else n * (fac (n - 1))
 
 fac2 = fun n res -> if n == 0 then res else fac2 (n - 1) (n * res)
+
+filter = fun p xs -> if xs == [] then [] else if p (head xs) then [head xs] ++ filter p (tail xs) else filter p (tail xs)
+
+square = fun x -> x * x
+
+fold = fun f a xs -> if xs == [] then a else fold f (f a (head xs)) (tail xs)
+
+f = fun acc y -> acc + 1
+
+lengthFold = fun xs -> fold f 0 xs
