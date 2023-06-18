@@ -20,3 +20,5 @@ evalExample s = eval std [] (parseString s)
 traceExample :: String -> Proof EvalJ
 traceExample s = trace std (parseString s)
 
+traceExpr :: Expr -> Proof EvalJ
+traceExpr = trace std

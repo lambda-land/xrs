@@ -128,12 +128,12 @@ instance Explain EvalJ where
 
 {--
   D, rho |- e1 => (closure z -> e, rho', ns)
-  D, rho'[z |- (closure z -> e, rho', x:ns)] |- e2 => v
+  D, rho[x |-> (closure z -> e, rho', x:ns)] |- e2 => v
   -----------------------------------------------------------LetClosure
   D, rho |- let x = e1 in e2 => v
 --}
   premises (EvalJ d rho (ELet x e1 e2) v) | v1@(VClosure z e rho' ns) <- eval d rho e1
-    = [[EvalJ d rho e1 v1, EvalJ d ((z,VClosure z e rho' (EVar x:ns)):rho') e2 v]]
+    = [[EvalJ d rho e1 v1, EvalJ d ((x,VClosure z e rho' (EVar x:ns)):rho) e2 v]]
 
 {--
   D, rho |- e1 => v'     D, rho[x |-> v'] |- e2 => v
@@ -189,10 +189,10 @@ trace d e = suppose (EvalJ d [] e v)
 
 
 instance Show EvalJ where
-  show (EvalJ d rho e v) = show e ++ " => " ++ show v
+  -- show (EvalJ d rho e v) = show e ++ " => " ++ show v
 
   -- show (EvalJ d rho e v) = "{}" ++ "," ++ "[]" ++ " |- " ++ show e ++ " => " ++ show v
-  -- show (EvalJ d rho e v) = "{}" ++ "," ++ showLocal rho ++ " |- " ++ show e ++ " => " ++ show v
+  show (EvalJ d rho e v) = "{}" ++ "," ++ showLocal rho ++ " |- " ++ show e ++ " => " ++ show v
     where showGlobal d = "{" ++ (intercalate ", " $ map fst d) ++ "}"
           showLocal rho = "[" ++ (intercalate ", " $ map (\(v, v') -> v ++ " -> " ++ show v') $ filter (\(v,_) -> v `elem` (freeVars e)) rho) ++ "]"
 

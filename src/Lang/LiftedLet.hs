@@ -8,6 +8,12 @@ import Data.Map (Map)
 import qualified Data.Map as Map
 
 
+import Logic.Proof
+import Lang.Operation
+import Lang.Evaluation
+
+
+
 type BindingName = Int
 type Bindings = Map BindingName Expr
 type FactorState a = State Bindings a
@@ -79,3 +85,11 @@ bindingsToLet m e = foldr (\ (k,e') e -> ELet ("tmp" ++ show k) e' e) e' (init (
 
 constructLet :: Expr -> Expr
 constructLet e = bindingsToLet (execFactor e) e
+
+
+
+liftedLetProofTree :: Expr -> Proof EvalJ
+liftedLetProofTree =  traceExpr . constructLet 
+
+-- exmp = parseExample "add (id 2 + id 3) (id 6)"
+exmp = parseExample "add 2 3"

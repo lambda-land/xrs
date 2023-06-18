@@ -117,6 +117,7 @@ substVar v e1 e2 = treeMap' subst e2
         subst e (ELet v' _ _) | v == v' = e
         subst e e' = e'
 
+(/~>) :: Var -> Expr -> Expr -> Expr
 (/~>) v e = substVar v e
 
 -- f :: [a -> a] -> a -> a
@@ -125,7 +126,7 @@ substVar v e1 e2 = treeMap' subst e2
 fillEnv :: LocalEnv -> Expr -> Expr
 fillEnv env e = foldl (.) id substs e -- foldl (\ v e' -> (/~>) v e') e env'
   where substs = [v /~> (embed e') | v <- map fst env', let (Just e') = lookup v env']
-        env' = filter (not . isClosure . snd) env
+        env' = env -- filter (not . isClosure . snd) env
         isClosure (VClo _ _ _) = True
         isClosure _                = False
 

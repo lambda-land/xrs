@@ -16,7 +16,7 @@ eval d rho e = case e of
          | Just e'  <- lookup v d -> case eval d [] e' of
                                        VClosure z e rho ns -> VClosure z e rho (EVar v:ns)
                                        v -> v
-         | otherwise -> error $ "unbound variable: " ++ v
+         | otherwise -> error $ "unbound variable: " ++ v ++ " in " ++ show rho
   ELet v e1 e2 -> eval d ((v, eval d rho e1):rho) e2
   EOp e1 o e2  -> runBinOp o (eval d rho e1) (eval d rho e2)
   ELam v e'    -> VClosure v e' rho [e]                                 -- TODO: trim the closure environment?
