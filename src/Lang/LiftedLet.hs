@@ -80,7 +80,8 @@ evalFactor e = case reverse $ Map.toList (execFactor e) of
   ((_,e'):_) -> e'
 
 bindingsToLet :: Bindings -> Expr -> Expr
-bindingsToLet m e = foldr (\ (k,e') e -> ELet ("tmp" ++ show k) e' e) e' (init (Map.toList m))
+bindingsToLet m e | [] <- Map.toList m = e
+                  | otherwise          = foldr (\ (k,e') e -> ELet ("tmp" ++ show k) e' e) e' (init (Map.toList m))
   where e' = evalFactor e
 
 constructLet :: Expr -> Expr
@@ -90,6 +91,13 @@ constructLet e = bindingsToLet (execFactor e) e
 
 liftedLetProofTree :: Expr -> Proof EvalJ
 liftedLetProofTree = fmap fillEnvJ . fmap fillEnvJ . traceExpr . constructLet 
+
+
+-- moreLiftedLets :: Proof EvalJ -> Proof EvalJ
+-- moreLiftedLets (Proof j ps)  = Proof j (map moreLiftedLets $ children liftedPT)
+--   where liftedPT = fmap (fillEnvJ . fillEnvJ) (suppose (EvalJ d rho (constructLet e) v))
+--         (EvalJ d rho e v) = j
+
 
 isLiftedLetJ :: EvalJ -> Bool
 isLiftedLetJ (EvalJ _ _ (ELet ('t':'m':'p':_) _ _) _) = True
