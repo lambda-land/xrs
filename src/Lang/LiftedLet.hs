@@ -13,6 +13,9 @@ import Lang.Operation
 import Lang.Evaluation
 
 
+import Debug.Trace
+import Lang.Classification
+import Lang.ClassificationInstances ()
 
 type BindingName = Int
 type Bindings = Map BindingName Expr
@@ -88,15 +91,53 @@ constructLet :: Expr -> Expr
 constructLet e = bindingsToLet (execFactor e) e
 
 
+constructLetFromState :: Expr -> FactorState Expr
+constructLetFromState e = do 
+  bindings <- get
+  return $ bindingsToLet bindings e
+
+
+  -- let (e',m) = runFactor e
+  -- in return $ bindingsToLet m e'
+
 
 liftedLetProofTree :: Expr -> Proof EvalJ
 liftedLetProofTree = fmap fillEnvJ . fmap fillEnvJ . traceExpr . constructLet 
 
+{-
+moreLiftedLets :: Proof EvalJ -> Proof EvalJ
+moreLiftedLets (Proof j ps)  = Proof j (map moreLiftedLets $ children liftedPT)
+  where liftedPT = fmap (fillEnvJ . fillEnvJ) (suppose (EvalJ d rho (constructLet e) v))
+        (EvalJ d rho e v) = j
+-}
 
--- moreLiftedLets :: Proof EvalJ -> Proof EvalJ
--- moreLiftedLets (Proof j ps)  = Proof j (map moreLiftedLets $ children liftedPT)
---   where liftedPT = fmap (fillEnvJ . fillEnvJ) (suppose (EvalJ d rho (constructLet e) v))
---         (EvalJ d rho e v) = j
+branchMap :: (a -> FactorState b) -> [a] -> FactorState [b]
+branchMap f [] = return []
+branchMap f (x:xs) = do
+  s <- get
+  x' <- f x
+  put s
+  xs' <- branchMap f xs
+  return $ x':xs'
+
+
+moreLiftedLets :: Proof EvalJ -> FactorState (Proof EvalJ)
+moreLiftedLets (Proof j []) = return $ Proof j []
+moreLiftedLets (Proof j ps) | isLiftedLetJ j = do
+  ps' <- branchMap moreLiftedLets ps
+  return $ Proof j ps'
+moreLiftedLets (Proof j ps) = do
+  traceShowId j `seq` return ()
+  (EvalJ d rho e v) <- return j
+  e' <- factor e
+  e'' <- constructLetFromState e'
+  let liftedPT = fmap (fillEnvJ . fillEnvJ) (suppose (EvalJ d rho e'' v))
+  let j' = conclusion liftedPT
+  traceShowId j' `seq` return ()
+  moreLiftedLets (Proof j' ps)
+  -- ps' <- mapM moreLiftedLets ps
+  -- return $ Proof j' ps'
+
 
 
 isLiftedLetJ :: EvalJ -> Bool
@@ -107,6 +148,40 @@ extract :: Proof EvalJ -> [EvalJ]
 extract (Proof j ps) | isLiftedLetJ j = concatMap extract ps
                      | otherwise = return j
 
+
+data Originality j = Synthetic j | Original j
+  deriving Show
+
+unoriginal (Synthetic j) = j
+unoriginal (Original j) = j
+
+instance Classification (Originality EvalJ) EvalJ () where
+  classify () j _ | isSynthetic j = Synthetic j
+                  | otherwise = Original j
+    where isSynthetic = isLiftedLetJ
+
+
+annotateOriginality :: Expr -> Proof (Originality EvalJ)
+annotateOriginality j = fmap fst $ annotate @(Originality EvalJ) @EvalJ @() $ liftedLetProofTree j
+
+selectOriginal :: Proof (Originality EvalJ) -> [EvalJ]
+selectOriginal = map unoriginal . filter originality . toList'
+  where originality (Original j) = True
+        originality _ = False
+
+
+
+newtype FirstOriginalCtx = FirstOriginalCtx Bool
+  deriving Show
+
+-- Keeps tags judgmenets if they are the first original judgement when traversing down.
+instance Context FirstOriginalCtx EvalJ where
+  rootCtx _ = FirstOriginalCtx False
+  childContexts (FirstOriginalCtx False) (Proof j ps) | isLiftedLetJ j = [FirstOriginalCtx (not $ isLiftedLetJ j') | j' <- map conclusion ps]
+  childContexts (FirstOriginalCtx _) (Proof j ps) = map (const $ FirstOriginalCtx False) ps
+
+
+
 exmp = parseExample "add (id 2 + id 3) (id 6)"
 -- exmp = parseExample "add 2 3"
 
@@ -114,3 +189,8 @@ exmp1 = extract $ liftedLetProofTree $ parseExample "add (id 2) (id 3)"
 exmp2 = extract $ liftedLetProofTree $ parseExample "id (add 2) 5" -- closure names not being filled in with tmp vars
 
 exmp3 = extract $ liftedLetProofTree $ parseExample "length (filter odd [1,2,3,4,5])"
+
+exmp4 = hidePast 2 $ liftedLetProofTree $ parseExample "fac 5"
+
+
+st = moreLiftedLets $ traceExpr $ parseExample "add (id 2) (id 3)"
